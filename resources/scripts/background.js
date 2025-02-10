@@ -1,4 +1,8 @@
-﻿browser.runtime.onMessage.addListener((request) => {
+﻿/* -------------------------- */
+/* ---------- SYNC ---------- */
+/* -------------------------- */
+
+browser.runtime.onMessage.addListener((request) => {
     if (request.action === "updateNikoPosition") {
         // Update Niko's position in local storage
         const { nikoPosX, nikoPosY, mousePosX, mousePosY, isSleeping } = request;

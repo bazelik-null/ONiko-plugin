@@ -133,33 +133,6 @@ function init() {
   };
 }
 
-/* ----------------------------------- */
-/* ---------- END INIT ONIKO --------- */
-/* ----------------------------------- */
-
-// Timestamp for animation frame regulation.
-let lastFrameTimestamp;
-// Primary animation loop.
-function onAnimationFrame(timestamp) {
-  if (!nikoEl.isConnected) return;
-  if (document.hidden) return; // Do not update if the tab is inactive.
-  if (!lastFrameTimestamp) lastFrameTimestamp = timestamp;
-  if (timestamp - lastFrameTimestamp > 70) {
-    lastFrameTimestamp = timestamp;
-    frame(); // Update Niko's state and position.
-  }
-  window.requestAnimationFrame(onAnimationFrame);
-}
-
-// Listen for messages to update Niko's position from other sources.
-browser.runtime.onMessage.addListener(function(request) {
-  nikoPosX = request.nikoPosX;
-  nikoPosY = request.nikoPosY;
-  mousePosX = request.mousePosX;
-  mousePosY = request.mousePosY;
-  isSleeping = request.isSleeping;
-});
-
 /* ------------------------------- */
 /* ---------- ANIMATION ---------- */
 /* ------------------------------- */
@@ -218,10 +191,19 @@ function frame() {
   updateNikoPosition();
 }
 
-
-/* ----------------------------------- */
-/* ---------- END ANIMATION ---------- */
-/* ----------------------------------- */
+// Timestamp for animation frame regulation.
+let lastFrameTimestamp;
+// Primary animation loop.
+function onAnimationFrame(timestamp) {
+  if (!nikoEl.isConnected) return;
+  if (document.hidden) return; // Do not update if the tab is inactive.
+  if (!lastFrameTimestamp) lastFrameTimestamp = timestamp;
+  if (timestamp - lastFrameTimestamp > 70) {
+    lastFrameTimestamp = timestamp;
+    frame(); // Update Niko's state and position.
+  }
+  window.requestAnimationFrame(onAnimationFrame);
+}
 
 // Reset the sleep timer and wake Niko if sleeping.
 function resetSleepTimer() {
@@ -232,6 +214,10 @@ function resetSleepTimer() {
     sleepFrameCount = 0;
   }
 }
+
+/* -------------------------- */
+/* ---------- SYNC ---------- */
+/* -------------------------- */
 
 // Update Niko's position on screen and notify other parts of the application.
 function updateNikoPosition() {
@@ -246,6 +232,15 @@ function updateNikoPosition() {
     isSleeping
   });
 }
+
+// Listen for messages to update Niko's position from other sources.
+browser.runtime.onMessage.addListener(function(request) {
+  nikoPosX = request.nikoPosX;
+  nikoPosY = request.nikoPosY;
+  mousePosX = request.mousePosX;
+  mousePosY = request.mousePosY;
+  isSleeping = request.isSleeping;
+});
 
 // Handle tab visibility changes.
 window.addEventListener("visibilitychange", function() {

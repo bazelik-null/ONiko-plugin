@@ -1,4 +1,8 @@
 ﻿document.addEventListener('DOMContentLoaded', () => {
+  /* --------------------------------------- */
+  /* ---------- SETTINGS HANDLING ---------- */
+  /* --------------------------------------- */
+
   // Get the form elements by id
   const optionsForm = document.getElementById('optionsForm');
   const message = document.getElementById('message');
