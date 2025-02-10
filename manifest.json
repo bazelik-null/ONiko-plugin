@@ -4,16 +4,16 @@
   "version": "2.0.1",
   "description": "Just Niko follows your mouse (Sprites from OneShot)",
   "icons": {
-    "96": "icons/niko.png"
+    "96": "resources/img/niko/icon.png"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["scripts/content.js"]
+      "js": ["resources/scripts/content.js"]
     }
   ],
   "background": {
-    "scripts": ["scripts/background.js"],
+    "scripts": ["resources/scripts/background.js"],
     "persistent": false
   },
   "permissions": [
@@ -22,7 +22,7 @@
     "tabs"
   ],
   "browser_action": {
-    "default_icon": "icons/niko.png",
-    "default_popup": "options.html"
+    "default_icon": "resources/img/niko/icon.png",
+    "default_popup": "resources/options.html"
   }
 }

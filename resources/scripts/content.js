@@ -1,4 +1,8 @@
-﻿// Create the Niko element.
+﻿/* -------------------------------- */
+/* ---------- ONIKO MAIN ---------- */
+/* -------------------------------- */
+
+// Create the Niko element.
 const nikoEl = document.createElement("div");
 
 // Declare variables for Niko's position and state.
@@ -26,33 +30,56 @@ browser.storage.local.get([
 });
 
 // Variables for sprite handling.
-let dirParam = "";
 let direction;
 let frameCount = 0;
 let sleepFrameCount = 0;
 let SleepTimer;
+let spriteSet;
+
+/* -------------------------------------- */
+/* ---------- SPRITES HANDLING ---------- */
+/* -------------------------------------- */
 
 // Sprite sets for different animations.
-const spriteSets = {
+const spriteWalk = {
   idle: [[0, 0]],
-
-  SleepN: [[0, 1], [-1, 1], [-2, 1], [-3, 1]], // Sleep facing up
-  SleepE: [[0, 2], [-1, 2], [-2, 2], [-3, 2]], // Sleep facing left
-  SleepW: [[0, 3], [-1, 3], [-2, 3], [-3, 3]], // Sleep facing right
-  SleepS: [[0, 4], [-1, 4], [-2, 4], [-3, 4]], // Sleep facing down
-
-  N: [[0, 5], [-1, 5], [-2, 5], [-3, 5]], // Facing up
-  NE: [[0, 5], [-1, 5], [-2, 6], [-3, 6]], // Facing up-right
-  NW: [[0, 5], [-1, 5], [-2, 7], [-3, 7]], // Facing up-left
-
-  E: [[0, 6], [-1, 6], [-2, 6], [-3, 6]], // Facing right
-
-  W: [[0, 7], [-1, 7], [-2, 7], [-3, 7]], // Facing left
-
-  S: [[0, 0], [-1, 0], [-2, 0], [-3, 0]], // Facing down
-  SE: [[0, 0], [-1, 0], [-2, 6], [-3, 6]], // Facing down-right
-  SW: [[0, 0], [-1, 0], [-2, 7], [-3, 7]]  // Facing down-left
+  N: [[0, 1], [-1, 1], [-2, 1], [-3, 1]], // Facing up
+  E: [[0, 2], [-1, 2], [-2, 2], [-3, 2]], // Facing right
+  W: [[0, 3], [-1, 3], [-2, 3], [-3, 3]], // Facing left
+  S: [[0, 4], [-1, 4], [-2, 4], [-3, 4]], // Facing down
 };
+
+const spriteSleep = {
+  idle: [[0, 0]],
+  N: [[0, 1], [-1, 1], [-2, 1], [-3, 1]], // Sleep facing up
+  E: [[0, 2], [-1, 2], [-2, 2], [-3, 2]], // Sleep facing left
+  W: [[0, 3], [-1, 3], [-2, 3], [-3, 3]], // Sleep facing right
+  S: [[0, 4], [-1, 4], [-2, 4], [-3, 4]], // Sleep facing down
+};
+
+let nikoWalk = browser.runtime.getURL("resources/img/niko/walk.png"); // Walk state spritesheet
+let nikoSleep = browser.runtime.getURL("resources/img/niko/sleep.png"); // Sleep state spritesheet
+
+// Update the sprite based on the given frame count.
+function setSprite(name, frame, state) {
+  // Switch spritesheets based on state
+
+  if (state == "walk") {
+    spriteSet = spriteWalk
+    nikoEl.style.backgroundImage = `url(${nikoWalk})`;
+  }
+
+  if (state == "sleep") {
+    spriteSet = spriteSleep
+    nikoEl.style.backgroundImage = `url(${nikoSleep})`;
+  }
+
+  // Handle animation
+  if (name !== undefined) {
+    const sprite = spriteSet[name][frame % spriteSet[name].length];
+    nikoEl.style.backgroundPosition = `${sprite[0] * 48}px ${sprite[1] * 64}px`;
+  }
+}
 
 /* -------------------------------- */
 /* ---------- INIT ONIKO ---------- */
@@ -80,14 +107,6 @@ function init() {
   nikoEl.style.setProperty("padding", "0px", "important");
   nikoEl.style.setProperty("background-color", "transparent", "important");
   nikoEl.style.setProperty("box-shadow", "0px 0px 0px 0px transparent", "important");
-
-  // Set the background image (sprite sheet) for Niko.
-  let nikoFile = browser.runtime.getURL("img/oniko.png");
-  const curScript = document.currentScript;
-  if (curScript && curScript.dataset.cat) {
-    nikoFile = curScript.dataset.cat;
-  }
-  nikoEl.style.backgroundImage = `url(${nikoFile})`;
 
   document.body.appendChild(nikoEl);
 
@@ -141,14 +160,6 @@ browser.runtime.onMessage.addListener(function(request) {
   isSleeping = request.isSleeping;
 });
 
-// Update the sprite based on the given frame count.
-function setSprite(name, frame) {
-  if (name !== undefined) {
-    const sprite = spriteSets[name][frame % spriteSets[name].length];
-    nikoEl.style.backgroundPosition = `${sprite[0] * 48}px ${sprite[1] * 64}px`;
-  }
-}
-
 /* ------------------------------- */
 /* ---------- ANIMATION ---------- */
 /* ------------------------------- */
@@ -169,29 +180,27 @@ function frame() {
 
   // Determine Niko's moving direction based on the relative position to the mouse.
   if (distance > 0) {
-    if (diffY / distance > 0.5) direction = dirParam + "N";
-    else if (diffY / distance < -0.5) direction = dirParam + "S";
-    else if (diffX / distance > 0.5) direction = dirParam + "W";
-    else if (diffX / distance < -0.5) direction = dirParam + "E";
+    if (diffY / distance > 0.5) direction = "N";
+    else if (diffY / distance < -0.5) direction = "S";
+    else if (diffX / distance > 0.5) direction = "W";
+    else if (diffX / distance < -0.5) direction = "E";
   }
 
   // If Niko is sleeping, update sleep animation and exit.
   if (isSleeping) {
-    dirParam = "Sleep";
-    setSprite(direction, Math.floor(sleepFrameCount));
+    setSprite(direction, Math.floor(sleepFrameCount), "sleep");
     sleepFrameCount += sleepFrameSpeed;
     return;
   }
 
   // Stop animation if Niko is close to the mouse.
   if (distance < nikoSpeed || distance < 128) {
-    setSprite(direction || "idle", 0);
+    setSprite(direction || "idle", 0, "walk");
     return;
   }
 
   // Update the moving sprite.
-  dirParam = "";
-  setSprite(direction, frameCount);
+  setSprite(direction, frameCount, "walk");
 
   // Update Niko's position.
   nikoPosX -= (diffX / distance) * nikoSpeed;
