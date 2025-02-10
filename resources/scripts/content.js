@@ -29,55 +29,53 @@ browser.storage.local.get([
   idleTime = result.idleTime || 60000; // Idle time before sleep (60 seconds)
 });
 
-// Variables for sprite handling.
 let direction;
 let frameCount = 0;
 let sleepFrameCount = 0;
 let SleepTimer;
-let spriteSet;
+let width, height;
+let spriteWalk, spriteSleep, spriteSet;
+let nikoWalk, nikoSleep;
 
-/* -------------------------------------- */
-/* ---------- SPRITES HANDLING ---------- */
-/* -------------------------------------- */
+/* ------------------------------------- */
+/* ---------- SPRITE HANDLING ---------- */
+/* ------------------------------------- */
 
-// Sprite sets for different animations.
-const spriteWalk = {
-  idle: [[0, 0]],
-  N: [[0, 1], [-1, 1], [-2, 1], [-3, 1]], // Facing up
-  E: [[0, 2], [-1, 2], [-2, 2], [-3, 2]], // Facing right
-  W: [[0, 3], [-1, 3], [-2, 3], [-3, 3]], // Facing left
-  S: [[0, 4], [-1, 4], [-2, 4], [-3, 4]], // Facing down
-};
+// Handle meta.json
+fetch(browser.runtime.getURL("resources/img/niko/meta.json"))
+  .then(response => {
+    return response.json();
+  })
+  .then(data => {
+    width = data.width;
+    height = data.height;
+    spriteWalk = data.spriteWalk;
+    spriteSleep = data.spriteSleep;
+    nikoEl.style.width = width + 'px';
+    nikoEl.style.height = height + 'px';
+    nikoWalk = browser.runtime.getURL("resources/img/" + data.nikoWalk); // Walk state spritesheet
+    nikoSleep = browser.runtime.getURL("resources/img/" + data.nikoSleep); // Sleep state spritesheet
+  });
 
-const spriteSleep = {
-  idle: [[0, 0]],
-  N: [[0, 1], [-1, 1], [-2, 1], [-3, 1]], // Sleep facing up
-  E: [[0, 2], [-1, 2], [-2, 2], [-3, 2]], // Sleep facing left
-  W: [[0, 3], [-1, 3], [-2, 3], [-3, 3]], // Sleep facing right
-  S: [[0, 4], [-1, 4], [-2, 4], [-3, 4]], // Sleep facing down
-};
-
-let nikoWalk = browser.runtime.getURL("resources/img/niko/walk.png"); // Walk state spritesheet
-let nikoSleep = browser.runtime.getURL("resources/img/niko/sleep.png"); // Sleep state spritesheet
 
 // Update the sprite based on the given frame count.
 function setSprite(name, frame, state) {
   // Switch spritesheets based on state
 
   if (state == "walk") {
-    spriteSet = spriteWalk
+    spriteSet = spriteWalk;
     nikoEl.style.backgroundImage = `url(${nikoWalk})`;
   }
 
   if (state == "sleep") {
-    spriteSet = spriteSleep
+    spriteSet = spriteSleep;
     nikoEl.style.backgroundImage = `url(${nikoSleep})`;
   }
 
   // Handle animation
   if (name !== undefined) {
     const sprite = spriteSet[name][frame % spriteSet[name].length];
-    nikoEl.style.backgroundPosition = `${sprite[0] * 48}px ${sprite[1] * 64}px`;
+    nikoEl.style.backgroundPosition = `${sprite[0] * width}px ${sprite[1] * height}px`;
   }
 }
 
@@ -95,8 +93,6 @@ function init() {
   // Set attributes and styles for Niko.
   nikoEl.id = "oniko";
   nikoEl.ariaHidden = true;
-  nikoEl.style.width = "48px";
-  nikoEl.style.height = "64px";
   nikoEl.style.position = "fixed";
   nikoEl.style.pointerEvents = "none";
   nikoEl.style.imageRendering = "pixelated";
