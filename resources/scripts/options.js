@@ -22,45 +22,110 @@
   }
 
   // Load current settings
-  browser.storage.local.get(["nikoSpeed", "sleepFrameSpeed", "idleTime"]).then(options => {
+  browser.storage.local.get(["nikoSpeed", "sleepFrameSpeed", "idleTime", "language"]).then(options => {
     nikoSpeedInput.value = options.nikoSpeed || defaultOptions.nikoSpeed;
     sleepFrameSpeedInput.value = options.sleepFrameSpeed || defaultOptions.sleepFrameSpeed;
     idleTimeInput.value = Math.floor((options.idleTime || defaultOptions.idleTime) / 1000);
     updateDisplay();
+
+    // Set the language from storage if available, otherwise use default ("en")
+    const savedLanguage = options.language || 'en';
+    document.getElementById("languageSelect").value = savedLanguage;
+    setLanguage(savedLanguage);
   });
 
   // Update displayed slider values
   nikoSpeedInput.addEventListener('input', updateDisplay);
   sleepFrameSpeedInput.addEventListener('input', updateDisplay);
 
-// Reset settings
-resetButton.addEventListener('click', () => {
-  nikoSpeedInput.value = defaultOptions.nikoSpeed;
-  sleepFrameSpeedInput.value = defaultOptions.sleepFrameSpeed;
-  idleTimeInput.value = Math.floor(defaultOptions.idleTime / 1000);
-  updateDisplay();
-  // Save default settings
-  browser.storage.local.set(defaultOptions).then(() => {
-  }).catch(error => {
-    console.error("Error resetting settings:", error);
-    message.textContent = "Error resetting settings.";
-  });
-});
-
-// Save settings
-optionsForm.addEventListener('submit', event => {
-  event.preventDefault();
-  // Parse values
-  const options = {
-    nikoSpeed: parseInt(nikoSpeedInput.value, 10),
-    sleepFrameSpeed: parseFloat(sleepFrameSpeedInput.value),
-    idleTime: parseInt(idleTimeInput.value, 10) * 1000
-  };
-  // Save to local storage
-  browser.storage.local.set(options).then(() => {
-  }).catch(error => {
-    console.error("Error saving settings:", error);
-    message.textContent = "Error saving settings.";
+  // Reset settings
+  resetButton.addEventListener('click', () => {
+    nikoSpeedInput.value = defaultOptions.nikoSpeed;
+    sleepFrameSpeedInput.value = defaultOptions.sleepFrameSpeed;
+    idleTimeInput.value = Math.floor(defaultOptions.idleTime / 1000);
+    updateDisplay();
+    // Save default settings
+    browser.storage.local.set(defaultOptions).then(() => {
+    }).catch(error => {
+      console.error("Error resetting settings:", error);
+      message.textContent = "Error resetting settings.";
     });
   });
+
+  // Save settings
+  optionsForm.addEventListener('submit', event => {
+    event.preventDefault();
+    // Parse values
+    const options = {
+      nikoSpeed: parseInt(nikoSpeedInput.value, 10),
+      sleepFrameSpeed: parseFloat(sleepFrameSpeedInput.value),
+      idleTime: parseInt(idleTimeInput.value, 10) * 1000
+    };
+    // Save to local storage
+    browser.storage.local.set(options).then(() => {
+    }).catch(error => {
+      console.error("Error saving settings:", error);
+      message.textContent = "Error saving settings.";
+      });
+    });
+
+/* ---------------------------- */
+/* ---------- LOCALE ---------- */
+/* ---------------------------- */
+
+  // Language translations for page elements
+  const translations = {
+    en: {
+      headerTitle: "Settings",
+      nikoSpeedLabel: "Niko speed:",
+      sleepFrameSpeedLabel: "Sleep animation speed:",
+      idleTimeLabel: "Idle time (seconds):",
+      saveButton: "Save",
+      resetButton: "Reset to default",
+      reloadMsg: "Please reload the page for changes to take effect.",
+      languageLabel: "Choose language:"
+    },
+    ru: {
+      headerTitle: "Настройки",
+      nikoSpeedLabel: "Скорость Нико:",
+      sleepFrameSpeedLabel: "Скорость анимации сна:",
+      idleTimeLabel: "Время до засыпания Нико (секунд):",
+      saveButton: "Сохранить",
+      resetButton: "Сбросить к значеням по умолчанию",
+      reloadMsg: "Перезагрузите страницу для применения изменений.",
+      languageLabel: "Выберите язык:"
+    }
+  };
+
+  // Make sure that the language drop-down immediately applies the language change
+  document.getElementById("languageSelect").addEventListener("change", (e) => {
+    const selectedLanguage = e.target.value;
+    setLanguage(selectedLanguage);
+  });
+
+  // Function to change language
+  window.setLanguage = function(lang) {
+    if (translations[lang]) {
+      // Update page title text
+      document.getElementById("headerTitle").textContent = translations[lang].headerTitle;
+      // Update form labels
+      document.getElementById("nikoSpeedLabel").textContent = translations[lang].nikoSpeedLabel;
+      document.getElementById("sleepFrameSpeedLabel").textContent = translations[lang].sleepFrameSpeedLabel;
+      document.getElementById("idleTimeLabel").textContent = translations[lang].idleTimeLabel;
+      // Update button texts
+      document.getElementById("saveButton").textContent = translations[lang].saveButton;
+      document.getElementById("resetButton").textContent = translations[lang].resetButton;
+      // Update reload message
+      document.getElementById("reloadMsg").textContent = translations[lang].reloadMsg;
+      // Update language dropdown label text
+      document.querySelector('label[for="languageSelect"]').textContent = translations[lang].languageLabel;
+      // Update the lang attribute in the html tag
+      document.documentElement.lang = lang;
+    } else {
+      console.error("Translations for language " + lang + " are not available.");
+    }
+  };
+
+  // Set default language (e.g., "en")
+  setLanguage('en');
 });
