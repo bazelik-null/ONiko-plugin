@@ -145,12 +145,22 @@
       document.getElementById("reloadMsg").textContent = translations[lang].reloadMsg;
       // Update language dropdown label text
       document.querySelector('label[for="languageSelect"]').textContent = translations[lang].languageLabel;
+
       // Update sprite dropdown label text
       document.querySelector('label[for="spriteSelect"]').textContent = translations[lang].spriteLabel;
-      document.getElementById("spriteSelect").innerHTML = `
-        <option value="Niko">${translations[lang].spriteNiko}</option>
-        <option value="TWM">${translations[lang].spriteTWM}</option>
-      `;
+      const spriteSelect = document.getElementById("spriteSelect");
+      spriteSelect.innerHTML = '';
+      const options = [
+        { value: "Niko", text: translations[lang].spriteNiko },
+        { value: "TWM", text: translations[lang].spriteTWM },
+      ];
+      options.forEach((option) => {
+        const opt = document.createElement("option");
+        opt.value = option.value;
+        opt.textContent = option.text;
+        spriteSelect.appendChild(opt);
+      });
+
       // Update the lang attribute in the html tag
       document.documentElement.lang = lang;
     } else {
