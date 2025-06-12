@@ -1,10 +1,10 @@
 {
   "manifest_version": 2,
   "name": "oNiko",
-  "version": "2.2",
-  "description": "Add Niko that follows your mouse (Sprites from OneShot)",
+  "version": "2.3",
+  "description": "Adds Niko that follows your mouse (Sprites from OneShot)",
   "icons": {
-    "96": "resources/img/niko/icon.png"
+    "96": "resources/img/icon.png"
   },
   "content_scripts": [
     {
@@ -17,12 +17,10 @@
     "persistent": false
   },
   "permissions": [
-    "activeTab",
-    "storage",
-    "tabs"
+    "storage"
   ],
   "browser_action": {
-    "default_icon": "resources/img/niko/icon.png",
+    "default_icon": "resources/img/icon.png",
     "default_popup": "resources/options.html"
   }
 }

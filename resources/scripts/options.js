@@ -17,7 +17,9 @@
   const defaultOptions = {
     nikoSpeed: 10,
     sleepFrameSpeed: 0.1,
-    idleTime: 60000  // 60 seconds
+    idleTime: 60000,  // 60 seconds
+    language: 'en',
+    sprite: 'Niko'
   };
 
   function updateDisplay() {
@@ -26,7 +28,7 @@
   }
 
   // Load current settings
-  browser.storage.local.get(["nikoSpeed", "sleepFrameSpeed", "idleTime", "language"]).then(options => {
+  browser.storage.local.get(["nikoSpeed", "sleepFrameSpeed", "idleTime", "language", "sprite"]).then(options => {
     nikoSpeedInput.value = options.nikoSpeed || defaultOptions.nikoSpeed;
     sleepFrameSpeedInput.value = options.sleepFrameSpeed || defaultOptions.sleepFrameSpeed;
     idleTimeInput.value = Math.floor((options.idleTime || defaultOptions.idleTime) / 1000);
@@ -36,6 +38,10 @@
     const savedLanguage = options.language || 'en';
     document.getElementById("languageSelect").value = savedLanguage;
     setLanguage(savedLanguage);
+
+    // Set the sprite from storage if available, otherwise use default ("Niko")
+    const savedSprite = options.sprite || 'Niko';
+    document.getElementById("spriteSelect").value = savedSprite;
   });
 
   // Update displayed slider values
@@ -63,15 +69,18 @@
     const options = {
       nikoSpeed: parseInt(nikoSpeedInput.value, 10),
       sleepFrameSpeed: parseFloat(sleepFrameSpeedInput.value),
-      idleTime: parseInt(idleTimeInput.value, 10) * 1000
+      idleTime: parseInt(idleTimeInput.value, 10) * 1000,
+      language: document.getElementById("languageSelect").value,
+      sprite: document.getElementById("spriteSelect").value
     };
     // Save to local storage
     browser.storage.local.set(options).then(() => {
+      console.log("Settings saved successfully.");
     }).catch(error => {
       console.error("Error saving settings:", error);
       message.textContent = "Error saving settings.";
-      });
     });
+  });
 
 /* ---------------------------- */
 /* ---------- LOCALE ---------- */
@@ -87,6 +96,9 @@
       saveButton: "Save",
       resetButton: "Reset to default",
       reloadMsg: "Please reload the page for changes to take effect.",
+      spriteLabel: "Choose sprite:",
+      spriteNiko: "Niko",
+      spriteTWM: "The World Machine",
       languageLabel: "Choose language:"
     },
     ru: {
@@ -97,6 +109,9 @@
       saveButton: "Сохранить",
       resetButton: "Сбросить к значеням по умолчанию",
       reloadMsg: "Перезагрузите страницу для применения изменений.",
+      spriteLabel: "Выберите спрайт:",
+      spriteNiko: "Нико",
+      spriteTWM: "Мировая Машина",
       languageLabel: "Выберите язык:"
     }
   };
@@ -105,8 +120,15 @@
   document.getElementById("languageSelect").addEventListener("change", (e) => {
     const selectedLanguage = e.target.value;
     setLanguage(selectedLanguage);
+    // Save language to local storage
+    browser.storage.local.set({ language: selectedLanguage }).then(() => {
+      console.log("Language saved successfully.");
+    }).catch(error => {
+      console.error("Error saving language:", error);
+      message.textContent = "Error saving language.";
+      message.textContent = "Error saving language.";
+    });
   });
-
   // Function to change language
   window.setLanguage = function(lang) {
     if (translations[lang]) {
@@ -123,6 +145,12 @@
       document.getElementById("reloadMsg").textContent = translations[lang].reloadMsg;
       // Update language dropdown label text
       document.querySelector('label[for="languageSelect"]').textContent = translations[lang].languageLabel;
+      // Update sprite dropdown label text
+      document.querySelector('label[for="spriteSelect"]').textContent = translations[lang].spriteLabel;
+      document.getElementById("spriteSelect").innerHTML = `
+        <option value="Niko">${translations[lang].spriteNiko}</option>
+        <option value="TWM">${translations[lang].spriteTWM}</option>
+      `;
       // Update the lang attribute in the html tag
       document.documentElement.lang = lang;
     } else {

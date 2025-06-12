@@ -3,12 +3,11 @@
 /* -------------------------------- */
 
 // Create the Niko element.
-const nikoEl = document.createElement("div");
+const nikoElement = document.createElement("div");
 
 // Declare variables for Niko's position and state.
-let nikoPosX, nikoPosY, mousePosX, mousePosY, isSleeping, nikoSpeed, sleepFrameSpeed, idleTime;
+let nikoPosX, nikoPosY, mousePosX, mousePosY, isSleeping, nikoSpeed, sleepFrameSpeed, idleTime, character;
 
-// Initialize values from storage.
 browser.storage.local.get([
   "nikoPosX",
   "nikoPosY",
@@ -17,22 +16,39 @@ browser.storage.local.get([
   "isSleeping",
   "sleepFrameSpeed",
   "nikoSpeed",
-  "idleTime"
+  "idleTime",
+  "sprite"
 ]).then((result) => {
-  nikoPosX = result.nikoPosX || 32; // Initial X position
-  nikoPosY = result.nikoPosY || 32; // Initial Y position
-  mousePosX = result.mousePosX || 0; // Mouse X position (default 0)
-  mousePosY = result.mousePosY || 0; // Mouse Y position (default 0)
-  isSleeping = result.isSleeping || false; // Check if Niko is sleeping
-  sleepFrameSpeed = result.sleepFrameSpeed || 0.1; // Default sleep animation speed
-  nikoSpeed = result.nikoSpeed || 10; // Default moving speed
-  idleTime = result.idleTime || 60000; // Idle time before sleep (60 seconds)
+  nikoPosX = result.nikoPosX || 32; 
+  nikoPosY = result.nikoPosY || 32; 
+  mousePosX = result.mousePosX || 0; 
+  mousePosY = result.mousePosY || 0; 
+  isSleeping = result.isSleeping || false; 
+  sleepFrameSpeed = result.sleepFrameSpeed || 0.1; 
+  nikoSpeed = result.nikoSpeed || 10; 
+  idleTime = result.idleTime || 60000; 
+  character = result.sprite || "Niko";
+
+  fetch(browser.runtime.getURL("resources/img/" + character + "/meta.json"))
+    .then(response => {
+      return response.json();
+    })
+    .then(data => {
+      width = data.width;
+      height = data.height;
+      spriteWalk = data.spriteWalk;
+      spriteSleep = data.spriteSleep;
+      nikoElement.style.width = width + 'px';
+      nikoElement.style.height = height + 'px';
+      nikoWalk = browser.runtime.getURL("resources/img/" + data.nikoWalk); 
+      nikoSleep = browser.runtime.getURL("resources/img/" + data.nikoSleep); 
+    });
 });
 
 let direction;
 let frameCount = 0;
 let sleepFrameCount = 0;
-let SleepTimer;
+let sleepTimer;
 let width, height;
 let spriteWalk, spriteSleep, spriteSet;
 let nikoWalk, nikoSleep;
@@ -41,41 +57,21 @@ let nikoWalk, nikoSleep;
 /* ---------- SPRITE HANDLING ---------- */
 /* ------------------------------------- */
 
-// Handle meta.json
-fetch(browser.runtime.getURL("resources/img/niko/meta.json"))
-  .then(response => {
-    return response.json();
-  })
-  .then(data => {
-    width = data.width;
-    height = data.height;
-    spriteWalk = data.spriteWalk;
-    spriteSleep = data.spriteSleep;
-    nikoEl.style.width = width + 'px';
-    nikoEl.style.height = height + 'px';
-    nikoWalk = browser.runtime.getURL("resources/img/" + data.nikoWalk); // Walk state spritesheet
-    nikoSleep = browser.runtime.getURL("resources/img/" + data.nikoSleep); // Sleep state spritesheet
-  });
-
-
 // Update the sprite based on the given frame count.
 function setSprite(name, frame, state) {
-  // Switch spritesheets based on state
-
   if (state == "walk") {
     spriteSet = spriteWalk;
-    nikoEl.style.backgroundImage = `url(${nikoWalk})`;
+    nikoElement.style.backgroundImage = `url(${nikoWalk})`;
   }
 
   if (state == "sleep") {
     spriteSet = spriteSleep;
-    nikoEl.style.backgroundImage = `url(${nikoSleep})`;
+    nikoElement.style.backgroundImage = `url(${nikoSleep})`;
   }
 
-  // Handle animation
   if (name !== undefined) {
     const sprite = spriteSet[name][frame % spriteSet[name].length];
-    nikoEl.style.backgroundPosition = `${sprite[0] * width}px ${sprite[1] * height}px`;
+    nikoElement.style.backgroundPosition = `${sprite[0] * width}px ${sprite[1] * height}px`;
   }
 }
 
@@ -84,29 +80,25 @@ function setSprite(name, frame, state) {
 /* -------------------------------- */
 
 function init() {
-  // Remove the existing Niko element if present.
   const existingNiko = document.getElementById("oniko");
   if (existingNiko) {
     existingNiko.remove();
   }
 
-  // Set attributes and styles for Niko.
-  nikoEl.id = "oniko";
-  nikoEl.ariaHidden = true;
-  nikoEl.style.position = "fixed";
-  nikoEl.style.pointerEvents = "none";
-  nikoEl.style.imageRendering = "pixelated";
-  nikoEl.style.zIndex = 2147483647;
+  nikoElement.id = "oniko";
+  nikoElement.ariaHidden = true;
+  nikoElement.style.position = "fixed";
+  nikoElement.style.pointerEvents = "none";
+  nikoElement.style.imageRendering = "pixelated";
+  nikoElement.style.zIndex = 2147483647;
   
-  // Disable css overriding
-  nikoEl.style.setProperty("margin", "0px", "important");
-  nikoEl.style.setProperty("padding", "0px", "important");
-  nikoEl.style.setProperty("background-color", "transparent", "important");
-  nikoEl.style.setProperty("box-shadow", "0px 0px 0px 0px transparent", "important");
+  nikoElement.style.setProperty("margin", "0px", "important");
+  nikoElement.style.setProperty("padding", "0px", "important");
+  nikoElement.style.setProperty("background-color", "transparent", "important");
+  nikoElement.style.setProperty("box-shadow", "0px 0px 0px 0px transparent", "important");
 
-  document.body.appendChild(nikoEl);
+  document.body.appendChild(nikoElement);
 
-  // Get any possibly stored values (position and sleep state) again.
   browser.storage.local.get(['nikoPosX', 'nikoPosY', 'mousePosX', 'mousePosY', 'isSleeping']).then((result) => {
     nikoPosX = result.nikoPosX || 32;
     nikoPosY = result.nikoPosY || 32;
@@ -118,15 +110,14 @@ function init() {
   resetSleepTimer();
   window.requestAnimationFrame(onAnimationFrame);
 
-  // Update mouse position on movement.
-  document.onmousemove = function (event) {
+  document.addEventListener('mousemove', (event) => {
     mousePosX = event.clientX;
     mousePosY = event.clientY;
     resetSleepTimer();
-    if (!document.hidden) { // Only animate if the tab is active.
+    if (!document.hidden) { 
       window.requestAnimationFrame(onAnimationFrame);
     }
-  };
+  });
 }
 
 /* ------------------------------- */
@@ -140,8 +131,8 @@ function frame() {
   const distance = Math.hypot(diffX, diffY);
 
   // Start sleep timer if Niko is near the mouse and not already sleeping.
-  if (distance < 128 && !SleepTimer && !isSleeping) {
-    SleepTimer = setTimeout(() => {
+  if (distance < 128 && !sleepTimer && !isSleeping) {
+    sleepTimer = setTimeout(() => {
       isSleeping = true;
       sleepFrameCount = 0;
     }, idleTime);
@@ -161,7 +152,6 @@ function frame() {
     }
   }
   
-  // If Niko is sleeping, update sleep animation and exit.
   if (isSleeping) {
     setSprite(direction, Math.floor(sleepFrameCount), "sleep");
     sleepFrameCount += sleepFrameSpeed;
@@ -174,7 +164,6 @@ function frame() {
     return;
   }
 
-  // Update the moving sprite.
   setSprite(direction, frameCount, "walk");
 
   // Update Niko's position.
@@ -187,24 +176,22 @@ function frame() {
   updateNikoPosition();
 }
 
-// Timestamp for animation frame regulation.
 let lastFrameTimestamp;
 // Primary animation loop.
 function onAnimationFrame(timestamp) {
-  if (!nikoEl.isConnected) return;
-  if (document.hidden) return; // Do not update if the tab is inactive.
+  if (!nikoElement.isConnected) return;
+  if (document.hidden) return; 
   if (!lastFrameTimestamp) lastFrameTimestamp = timestamp;
   if (timestamp - lastFrameTimestamp > 70) {
     lastFrameTimestamp = timestamp;
-    frame(); // Update Niko's state and position.
+    frame(); 
   }
   window.requestAnimationFrame(onAnimationFrame);
 }
 
-// Reset the sleep timer and wake Niko if sleeping.
 function resetSleepTimer() {
-  clearTimeout(SleepTimer);
-  SleepTimer = null;
+  clearTimeout(sleepTimer);
+  sleepTimer = null;
   if (isSleeping) {
     isSleeping = false;
     sleepFrameCount = 0;
@@ -215,10 +202,9 @@ function resetSleepTimer() {
 /* ---------- SYNC ---------- */
 /* -------------------------- */
 
-// Update Niko's position on screen and notify other parts of the application.
 function updateNikoPosition() {
-  nikoEl.style.left = `${nikoPosX - 24}px`;
-  nikoEl.style.top = `${nikoPosY - 32}px`;
+  nikoElement.style.left = `${nikoPosX - 24}px`;
+  nikoElement.style.top = `${nikoPosY - 32}px`;
   browser.runtime.sendMessage({
     action: "updateNikoPosition",
     nikoPosX,
@@ -229,7 +215,6 @@ function updateNikoPosition() {
   });
 }
 
-// Listen for messages to update Niko's position from other sources.
 browser.runtime.onMessage.addListener(function(request) {
   nikoPosX = request.nikoPosX;
   nikoPosY = request.nikoPosY;
@@ -263,5 +248,5 @@ window.addEventListener("beforeunload", function() {
   }
 });
 
-// Initialize Niko.
 init();
+
