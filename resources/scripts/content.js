@@ -34,12 +34,8 @@ browser.storage.local.get([
       return response.json();
     })
     .then(data => {
-      width = data.width;
-      height = data.height;
       spriteWalk = data.spriteWalk;
       spriteSleep = data.spriteSleep;
-      nikoElement.style.width = width + 'px';
-      nikoElement.style.height = height + 'px';
       nikoWalk = browser.runtime.getURL("resources/img/" + data.nikoWalk); 
       nikoSleep = browser.runtime.getURL("resources/img/" + data.nikoSleep); 
     });
@@ -61,15 +57,21 @@ let nikoWalk, nikoSleep;
 function setSprite(name, frame, state) {
   if (state == "walk") {
     spriteSet = spriteWalk;
+    width = spriteWalk.width;
+    height = spriteWalk.height;	
     nikoElement.style.backgroundImage = `url(${nikoWalk})`;
   }
 
   if (state == "sleep") {
     spriteSet = spriteSleep;
+    width = spriteSleep.width;
+    height = spriteSleep.height;
     nikoElement.style.backgroundImage = `url(${nikoSleep})`;
   }
 
   if (name !== undefined) {
+    nikoElement.style.width = width + 'px';
+    nikoElement.style.height = height + 'px';
     const sprite = spriteSet[name][frame % spriteSet[name].length];
     nikoElement.style.backgroundPosition = `${sprite[0] * width}px ${sprite[1] * height}px`;
   }
