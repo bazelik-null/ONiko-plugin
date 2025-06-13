@@ -99,6 +99,8 @@
       spriteLabel: "Choose sprite:",
       spriteNiko: "Niko",
       spriteTWM: "The World Machine",
+      spriteSurvivor: "Survivor",
+      spriteWatcher: "Watcher",
       languageLabel: "Choose language:"
     },
     ru: {
@@ -112,6 +114,8 @@
       spriteLabel: "Выберите спрайт:",
       spriteNiko: "Нико",
       spriteTWM: "Мировая Машина",
+      spriteSurvivor: "Выживший",
+      spriteWatcher: "Созерцатель",
       languageLabel: "Выберите язык:"
     }
   };
@@ -153,6 +157,8 @@
       const options = [
         { value: "Niko", text: translations[lang].spriteNiko },
         { value: "TWM", text: translations[lang].spriteTWM },
+	{ value: "Survivor", text: translations[lang].spriteSurvivor },
+	{ value: "Watcher", text: translations[lang].spriteWatcher },
       ];
       options.forEach((option) => {
         const opt = document.createElement("option");
