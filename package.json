@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --mode production",
+    "build-chromium": "convert-manifest-format --chrome && webpack --mode production",
+    "build-firefox": "convert-manifest-format --firefox && webpack --mode production",
     "watch": "webpack --mode development --watch",
     "flow": "flow"
   },
@@ -28,6 +29,7 @@
     "@babel/preset-flow": "^7.27.1",
     "babel-loader": "^10.0.0",
     "babel-plugin-syntax-hermes-parser": "^0.28.1",
+    "convert-manifest-format": "^0.6.0",
     "copy-webpack-plugin": "^13.0.0",
     "file-loader": "^6.2.0",
     "flow-bin": "^0.273.1",
