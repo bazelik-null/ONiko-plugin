@@ -40,8 +40,7 @@
     setLanguage(savedLanguage);
 
     // Set the sprite from storage if available, otherwise use default ("Niko")
-    const savedSprite = options.sprite || 'Niko';
-    document.getElementById("spriteSelect").value = savedSprite;
+    document.getElementById("spriteSelect").value = options.sprite || 'Niko';
   });
 
   // Update displayed slider values
