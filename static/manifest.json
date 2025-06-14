@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "oNiko",
-  "version": "2.5",
+  "version": "2.6",
   "description": "Adds Niko that follows your mouse (Sprites from OneShot)",
   "icons": {
     "96": "img/icon.png"

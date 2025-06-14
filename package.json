@@ -1,6 +1,6 @@
 {
   "name": "oniko-plugin",
-  "version": "2.5",
+  "version": "2.6",
   "description": "The oNiko extension is designed for browsers based on Chromium and Firefox.",
   "main": "index.js",
   "scripts": {
