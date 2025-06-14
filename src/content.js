@@ -29,15 +29,15 @@ browser.storage.local.get([
   idleTime = result.idleTime || 60000; 
   character = result.sprite || "Niko";
 
-  fetch(browser.runtime.getURL("resources/img/" + character + "/meta.json"))
+  fetch(browser.runtime.getURL("img/" + character + "/meta.json"))
     .then(response => {
       return response.json();
     })
     .then(data => {
       spriteWalk = data.spriteWalk;
       spriteSleep = data.spriteSleep;
-      nikoWalk = browser.runtime.getURL("resources/img/" + data.nikoWalk); 
-      nikoSleep = browser.runtime.getURL("resources/img/" + data.nikoSleep); 
+      nikoWalk = browser.runtime.getURL("img/" + data.nikoWalk);
+      nikoSleep = browser.runtime.getURL("img/" + data.nikoSleep);
     });
 });
 
