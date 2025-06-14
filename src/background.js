@@ -2,6 +2,8 @@
 /* ---------- SYNC ---------- */
 /* -------------------------- */
 
+let browser = require("webextension-polyfill");
+
 browser.runtime.onMessage.addListener((request) => {
     if (request.action === "updateNikoPosition") {
         // Update Niko's position in local storage

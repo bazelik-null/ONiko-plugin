@@ -1,5 +1,5 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "oNiko",
   "version": "2.6",
   "description": "Adds Niko that follows your mouse (Sprites from OneShot)",
@@ -16,18 +16,20 @@
     }
   ],
   "background": {
-    "scripts": [
-      "lib/browser-polyfill.js",
-      "scripts/background.js"
-    ],
-    "persistent": false
+    "service_worker": "scripts/background.js",
+    "type": "module"
   },
   "permissions": [
     "storage"
   ],
-  "browser_action": {
+  "action": {
     "default_icon": "img/icon.png",
     "default_popup": "options/options.html"
   },
-  "web_accessible_resources": ["img/*"]
+  "web_accessible_resources": [
+    {
+      "resources": [ "img/*" ],
+      "matches": [ "<all_urls>" ]
+    }
+  ]
 }
