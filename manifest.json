@@ -19,7 +19,9 @@
   ],
   "background": {
     "type": "module",
-    "service_worker": "scripts/background.js"
+    "scripts": [
+      "scripts/background.js"
+    ]
   },
   "permissions": [
     "storage"

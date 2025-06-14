@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-chromium": "convert-manifest-format --chrome && webpack --mode production",
     "build-firefox": "convert-manifest-format --firefox && webpack --mode production",
-    "watch": "webpack --mode development --watch",
+    "watch-chromium": "convert-manifest-format --chrome && webpack --mode development --watch",
+    "watch-firefox": "convert-manifest-format --firefox && webpack --mode development --watch",
     "flow": "flow"
   },
   "repository": {
