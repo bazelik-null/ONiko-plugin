@@ -8,6 +8,8 @@ module.exports = {
         background: path.join(__dirname, 'scripts', 'background.js'),
         options: path.join(__dirname , 'scripts', 'options.js'),
         content: path.join(__dirname, 'scripts', 'content.js'),
+        fight: path.join(__dirname, 'scripts', 'fight.js'),
+        viegnette: path.join(__dirname, 'scripts', 'viegnette.js')
     },
     output: {
         path: path.join(__dirname, 'dist'),

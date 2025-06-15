@@ -2,11 +2,14 @@
 /* ---------- ONIKO MAIN ---------- */
 /* -------------------------------- */
 
+const { warnLine, createSquare, createGlitchElements } = require('./fight.js');
+const { updateVignette, increaseIntensity } = require('./viegnette.js');
+
 // Create the Niko element.
 const nikoElement = document.createElement("div");
 
 // Declare variables for Niko's position and state.
-let nikoPosX, nikoPosY, mousePosX, mousePosY, isSleeping, nikoSpeed, sleepFrameSpeed, idleTime, character;
+let nikoPosX, nikoPosY, mousePosX, mousePosY, isSleeping, nikoSpeed, sleepFrameSpeed, idleTime, character, removalTimeout, lineTimeout, squareTimeout;
 
 browser.storage.local.get([
   "nikoPosX",
@@ -28,6 +31,12 @@ browser.storage.local.get([
   nikoSpeed = result.nikoSpeed || 10; 
   idleTime = result.idleTime || 60000; 
   character = result.sprite || "Niko";
+
+  //Enable easter egg
+  if (idleTime == 143000) {
+    nikoSpeed = 20
+    character = "TWM"
+  }
 
   fetch(browser.runtime.getURL("img/" + character + "/meta.json"))
     .then(response => {
@@ -109,6 +118,8 @@ function init() {
     isSleeping = result.isSleeping || undefined;
   });
 
+  updateVignette(0)
+
   resetSleepTimer();
   window.requestAnimationFrame(onAnimationFrame);
 
@@ -161,9 +172,47 @@ function frame() {
   }
 
   // Stop animation if Niko is close to the mouse.
-  if (distance < nikoSpeed || distance < 128) {
-    setSprite(direction || "idle", 0, "walk");
-    return;
+  if (distance < width || distance < height) { // Используем размеры спрайта
+      setSprite(direction || "idle", 0, "walk");
+
+      if (idleTime !== 143000) return;
+
+      // Niko attack
+      if (!removalTimeout) {
+        increaseIntensity();
+        createGlitchElements();
+
+        // Teleport niko to random location
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        const randomX = Math.floor(Math.random() * (screenWidth - 100));
+        const randomY = Math.floor(Math.random() * (screenHeight - 100));
+        nikoPosX = randomX;
+        nikoPosY = randomY;
+
+        updateNikoPosition();
+
+        removalTimeout = setTimeout(() => {
+            removalTimeout = null;
+        }, 300); // Cooldown
+      }
+      return;
+  }
+
+  // Spawn line attacks
+  if (!lineTimeout && idleTime == 143000) {
+      warnLine();
+      lineTimeout = setTimeout(() => {
+          lineTimeout = null; // Сбрасываем таймаут
+      }, 1000); // 1 second
+  }
+
+  // Spawn squares attacks
+  if (!squareTimeout && idleTime == 143000) {
+      createSquare();
+      squareTimeout = setTimeout(() => {
+          squareTimeout = null; // Сбрасываем таймаут
+      }, 50);
   }
 
   setSprite(direction, frameCount, "walk");

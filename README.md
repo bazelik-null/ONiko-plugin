@@ -4,6 +4,10 @@ The oNiko extension is designed for browsers based on Chromium and Firefox.
 
 Previously based on [this GitHub repository](https://github.com/adryd325/oneko.js).
 
+>[!WARNING]
+> 
+> This is a branch for the experimental version of the plugin. It will not be included in release, and bugs related to it will not be reviewed.
+
 ---
 
 # Installation:
