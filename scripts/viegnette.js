@@ -8,6 +8,7 @@ canvas.style.pointerEvents = 'none';
 
 let intensity = 0;
 let maxHp = 100;
+let timer = 180; // 3 min
 
 function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -39,6 +40,7 @@ function increaseIntensity() {
     if (intensity >= 100) {
         createGlitchElementsEnd()
         intensity = 100
+        clearInterval(timerInterval);
     }
     updateVignette(intensity)
     updateHpBar();
@@ -47,30 +49,63 @@ function increaseIntensity() {
 function createHpBar() {
     hpBar = document.createElement('div');
     hpBar.style.position = 'fixed';
-    hpBar.style.top = '10px'; // Расстояние от верхнего края экрана
+    hpBar.style.top = '10px';
     hpBar.style.left = '50%';
-    hpBar.style.transform = 'translateX(-50%)'; // Центрирование по горизонтали
-    hpBar.style.width = '200px'; // Ширина HP бара
-    hpBar.style.height = '20px'; // Высота HP бара
+    hpBar.style.transform = 'translateX(-50%)';
+    hpBar.style.width = '200px';
+    hpBar.style.height = '20px';
     hpBar.style.border = '1px solid black';
-    hpBar.style.zIndex = '1000'; // Установите высокий z-index, чтобы HP бар был виден поверх других элементов
+    hpBar.style.zIndex = '1001';
 
     innerBar = document.createElement('div');
     innerBar.style.height = '100%';
-    innerBar.style.background = 'linear-gradient(to right, green 100%, green 100%, red 0%)'; // Начальный цвет HP бара
+    innerBar.style.background = 'linear-gradient(to right, green 100%, green 100%, red 0%)';
 
     hpBar.appendChild(innerBar);
     document.body.appendChild(hpBar);
+
+    createTimer();
 }
 
 function updateHpBar() {
-    let currentHp = maxHp - intensity; // Рассчитайте текущее HP
+    let currentHp = maxHp - intensity;
     
-    if (currentHp < 0) currentHp = 0; // Ограничите минимальное значение HP
+    if (currentHp < 0) currentHp = 0;
     
-    let width = (currentHp / maxHp) * 100 + '%'; // Рассчитайте ширину HP бара
+    let width = (currentHp / maxHp) * 100 + '%';
     innerBar.style.background = `linear-gradient(to right, green ${width}, red ${width})`;
 }
+
+function createTimer() {
+    timerElement = document.createElement('div');
+    timerElement.style.position = 'fixed';
+    timerElement.style.top = '40px';
+    timerElement.style.left = '50%';
+    timerElement.style.transform = 'translateX(-50%)';
+    timerElement.style.fontSize = '24px';
+    timerElement.style.fontWeight = 'bold';
+    timerElement.style.zIndex = '1001';
+    document.body.appendChild(timerElement);
+
+    updateTimer();
+    timerInterval = setInterval(updateTimer, 1000);
+}
+
+function updateTimer() {
+    let minutes = Math.floor(timer / 60);
+    let seconds = timer % 60;
+
+    timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+    timer--;
+
+    if (timer < 0) {
+        timer = 0;
+        timerElement.textContent = '00:00';
+        clearInterval(timerInterval);
+    }
+}
+
 
 // Spam with glitches
 function createGlitchElementsEnd() {
