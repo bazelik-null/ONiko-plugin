@@ -1,8 +1,11 @@
-const { increaseIntensity, decreaseIntensity } = require('./viegnette.js');
+const { increaseDamage, decreaseDamage } = require('./hp.js');
+
+const homingSpeed = 5;
+let mousePosX = 0;
+let mousePosY = 0;
 
 function createGlitchElements() {
-  // Random count from 4 to 8
-  const count = Math.floor(Math.random() * 5) + 4;
+  const count = 3
   const elements = [];
 
   for (let i = 0; i < count; i++) {
@@ -26,7 +29,7 @@ function createGlitchElements() {
       elements.forEach(element => {
           document.body.removeChild(element);
       });
-  }, 2000);
+  }, 1000);
 }
 
 function createLine(warn) {
@@ -50,7 +53,7 @@ function createLine(warn) {
 
   // Do damage if mouse touches attack
   line.addEventListener("mouseover", (e) => {
-    increaseIntensity();
+    increaseDamage();
     createGlitchElements();
   });
 
@@ -58,7 +61,7 @@ function createLine(warn) {
   setTimeout(() => {
     line.remove();
     warn.remove();
-  }, 3000);
+  }, 1500);
 }
 
 function warnLine() {
@@ -121,9 +124,70 @@ function createSquare() {
 
   // Do damage if mouse touches attack
   square.addEventListener("mouseover", (e) => {
-    increaseIntensity();
+    increaseDamage();
     createGlitchElements();
   });
+}
+
+// Обработчик движения мыши
+document.addEventListener("mousemove", (event) => {
+  mousePosX = event.clientX;
+  mousePosY = event.clientY;
+});
+
+function createHoming() {
+  const homing = document.createElement("div");
+  homing.style.position = "absolute";
+  homing.style.zIndex = 1000; 
+  homing.style.width = "0";
+  homing.style.height = "0";
+  homing.style.borderLeft = "15px solid transparent";
+  homing.style.borderRight = "15px solid transparent";
+  homing.style.borderBottom = "30px solid purple";
+  document.body.appendChild(homing);
+
+  let homingPosX = Math.random() * window.innerWidth;
+  let homingPosY = Math.random() * window.innerHeight;
+  homing.style.top = `${homingPosY}px`;
+  homing.style.left = `${homingPosX}px`;
+
+  function moveHoming() {
+    const diffX = homingPosX - mousePosX;
+    const diffY = homingPosY - mousePosY;
+    const distance = Math.hypot(diffX, diffY);
+
+    if (distance) {
+      const normalizedX = diffX / distance;
+      const normalizedY = diffY / distance;
+
+      // Поворачиваем треугольник в сторону курсора
+      const angle = Math.atan2(normalizedY, normalizedX) * (180 / Math.PI);
+      homing.style.transform = `rotate(${angle}deg)`;
+
+      // Обновляем позицию треугольника
+      homingPosX -= (diffX / distance) * homingSpeed;
+      homingPosY -= (diffY / distance) * homingSpeed;
+
+      homing.style.top = `${homingPosY}px`;
+      homing.style.left = `${homingPosX}px`;
+    }
+
+    // Проверка на пересечение с курсором
+    if (Math.abs(homingPosX - mousePosX) < 30 && Math.abs(homingPosY - mousePosY) < 30) {
+      increaseDamage();
+      homing.remove();
+      createGlitchElements();
+    } else {
+      requestAnimationFrame(moveHoming); // Продолжаем движение
+    }
+  }
+
+  moveHoming(); // Запускаем движение
+
+  // Удаляем треугольник через 5 секунд
+  setTimeout(() => {
+    homing.remove();
+  }, 5000);
 }
 
 function createHeal() {
@@ -161,9 +225,9 @@ function createHeal() {
 
   // Do damage if mouse touches attack
   heal.addEventListener("mouseover", (e) => {
-    decreaseIntensity();
+    decreaseDamage();
     heal.remove();
   });
 }
 
-module.exports = { warnLine, createSquare, createHeal, createGlitchElements };
+module.exports = { warnLine, createSquare, createHeal, createGlitchElements, createHoming };

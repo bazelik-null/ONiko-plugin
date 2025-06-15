@@ -9,7 +9,7 @@ module.exports = {
         options: path.join(__dirname , 'scripts', 'options.js'),
         content: path.join(__dirname, 'scripts', 'content.js'),
         fight: path.join(__dirname, 'scripts', 'fight.js'),
-        viegnette: path.join(__dirname, 'scripts', 'viegnette.js')
+        hp: path.join(__dirname, 'scripts', 'hp.js')
     },
     output: {
         path: path.join(__dirname, 'dist'),

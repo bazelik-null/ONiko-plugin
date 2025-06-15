@@ -2,17 +2,18 @@
 /* ---------- ONIKO MAIN ---------- */
 /* -------------------------------- */
 
-const { warnLine, createSquare, createHeal, createGlitchElements } = require('./fight.js');
-const { updateVignette, increaseIntensity, createHpBar } = require('./viegnette.js');
+const { warnLine, createSquare, createHeal, createGlitchElements, createHoming } = require('./fight.js');
+const { updateVignette, createHpBarPlayer, attackNiko, createHpBarNiko } = require('./hp.js');
 
 // Create the Niko element.
 const nikoElement = document.createElement("div");
 
 // Declare variables for Niko's position and state.
-let nikoPosX, nikoPosY, mousePosX, mousePosY, isSleeping, nikoSpeed, sleepFrameSpeed, idleTime, character, removalTimeout, lineTimeout, squareTimeout, healTimeout;
+let nikoPosX, nikoPosY, mousePosX, mousePosY, isSleeping, nikoSpeed, sleepFrameSpeed, idleTime, character, removalTimeout, lineTimeout, squareTimeout, healTimeout, homingTimeout;
 
 let isFight = false;
 let isBlocked = false;
+let isPhase2 = false;
 
 browser.storage.local.get([
   "nikoPosX",
@@ -37,11 +38,12 @@ browser.storage.local.get([
 
   //Enable easter egg
   if (idleTime == 143000) {
-    nikoSpeed = 20
+    nikoSpeed = 10
     character = "TWM"
     isFight = true
     updateVignette(0);
-    createHpBar();
+    createHpBarPlayer();
+    createHpBarNiko();
     window.addEventListener('wheel', (event) => {
       event.preventDefault();
     }, { passive: false });
@@ -182,63 +184,83 @@ function frame() {
   if (distance < width || distance < height) { // Используем размеры спрайта
       setSprite(direction || "idle", 0, "walk");
 
-      // Niko attack
-      if (!removalTimeout && isFight) {
-        increaseIntensity();
-        createGlitchElements();
+    // Niko attack
+    if (!removalTimeout && isFight) {
+      attackNiko();
+      createGlitchElements();
 
-        // Teleport niko to random location
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
-        const randomX = Math.floor(Math.random() * (screenWidth - 100));
-        const randomY = Math.floor(Math.random() * (screenHeight - 100));
-        nikoPosX = randomX;
-        nikoPosY = randomY;
+      // Teleport niko to random location
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      const randomX = Math.floor(Math.random() * (screenWidth - 100));
+      const randomY = Math.floor(Math.random() * (screenHeight - 100));
+      nikoPosX = randomX;
+      nikoPosY = randomY;
 
-        updateNikoPosition();
+      updateNikoPosition();
 
-        removalTimeout = setTimeout(() => {
-            removalTimeout = null;
-        }, 300); // Cooldown
-      }
-      return;
+      removalTimeout = setTimeout(() => {
+        removalTimeout = null;
+      }, 300); // Cooldown
+    }
+    return;
   }
 
   // Spawn line attacks
   if (!lineTimeout && isFight) {
-      warnLine();
-      lineTimeout = setTimeout(() => {
-          lineTimeout = null; // Сбрасываем таймаут
-      }, 1000); // 1 second
+    warnLine();
+    lineTimeout = setTimeout(() => {
+      lineTimeout = null;
+    }, 1000); // 1 second
   }
 
   // Spawn squares attacks
   if (!squareTimeout && isFight) {
-      createSquare();
+    createSquare();
+    if (!isPhase2) {
+    squareTimeout = setTimeout(() => {
+      squareTimeout = null;
+    }, 75); } else {
       squareTimeout = setTimeout(() => {
-          squareTimeout = null; // Сбрасываем таймаут
-      }, 50);
+      squareTimeout = null;
+    }, 50); 
+    }
   }
 
   // Spawn heals
   if (!healTimeout && isFight) {
-      createHeal();
-      healTimeout = setTimeout(() => {
-          healTimeout = null; // Сбрасываем таймаут
-      }, 30000);
+    createHeal();
+    healTimeout = setTimeout(() => {
+      healTimeout = null;
+    }, 60000); // 60 seconds
   }
 
-  setSprite(direction, frameCount, "walk");
+  // Spawn homing attacks
+  if (!homingTimeout && isFight && isPhase2) {
+    createHoming();
+    homingTimeout = setTimeout(() => {
+      homingTimeout = null;
+    }, 5000);
+  }
 
-  // Update Niko's position.
-  nikoPosX -= (diffX / distance) * nikoSpeed;
-  nikoPosY -= (diffY / distance) * nikoSpeed;
+  if (!isFight) {
+    setSprite(direction, frameCount, "walk");
+  } else {
+    setSprite(direction || "idle", 0, "walk");
+  }
+
+  if (!isFight) {
+    // Update Niko's position.
+    nikoPosX -= (diffX / distance) * nikoSpeed;
+    nikoPosY -= (diffY / distance) * nikoSpeed;
+  }
   // Constrain Niko within the window boundaries.
   nikoPosX = Math.min(Math.max(16, nikoPosX), window.innerWidth - 16);
   nikoPosY = Math.min(Math.max(16, nikoPosY), window.innerHeight - 16);
 
   updateNikoPosition();
 }
+
 
 let lastFrameTimestamp;
 // Primary animation loop.
@@ -265,6 +287,11 @@ function resetSleepTimer(isBlocked) {
     return;
   }
 }
+
+function startPhase2() {
+  isPhase2 = true
+}
+window.startPhase2 = startPhase2;
 
 function createLabelWon() {
     labelElement = document.createElement('div');
