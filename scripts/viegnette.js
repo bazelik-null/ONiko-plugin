@@ -65,6 +65,7 @@ function createHpBar() {
     document.body.appendChild(hpBar);
 
     createTimer();
+    createLabel();
 }
 
 function updateHpBar() {
@@ -106,6 +107,24 @@ function updateTimer() {
     }
 }
 
+function createLabel() {
+    labelElement = document.createElement('div');
+    labelElement.style.position = 'fixed';
+    labelElement.style.top = '50%';
+    labelElement.style.left = '50%';
+    labelElement.style.transform = 'translateX(-50%)';
+    labelElement.style.fontSize = '100px';
+    labelElement.style.fontWeight = 'bold';
+    labelElement.style.zIndex = '1001';
+    labelElement.style.color = "red";
+    document.body.appendChild(labelElement);
+
+    labelElement.textContent = 'RUN FROM NIKO';
+
+    setTimeout(() => {
+    labelElement.remove();
+  }, 2000);
+}
 
 // Spam with glitches
 function createGlitchElementsEnd() {

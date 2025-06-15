@@ -11,6 +11,8 @@ const nikoElement = document.createElement("div");
 // Declare variables for Niko's position and state.
 let nikoPosX, nikoPosY, mousePosX, mousePosY, isSleeping, nikoSpeed, sleepFrameSpeed, idleTime, character, removalTimeout, lineTimeout, squareTimeout;
 
+let isFight = false;
+
 browser.storage.local.get([
   "nikoPosX",
   "nikoPosY",
@@ -36,6 +38,12 @@ browser.storage.local.get([
   if (idleTime == 143000) {
     nikoSpeed = 20
     character = "TWM"
+    isFight = true
+    updateVignette(0);
+    createHpBar();
+    window.addEventListener('wheel', (event) => {
+      event.preventDefault();
+    }, { passive: false });
   }
 
   fetch(browser.runtime.getURL("img/" + character + "/meta.json"))
@@ -118,9 +126,6 @@ function init() {
     isSleeping = result.isSleeping || undefined;
   });
 
-  updateVignette(0)
-  createHpBar();
-
   resetSleepTimer();
   window.requestAnimationFrame(onAnimationFrame);
 
@@ -176,10 +181,8 @@ function frame() {
   if (distance < width || distance < height) { // Используем размеры спрайта
       setSprite(direction || "idle", 0, "walk");
 
-      if (idleTime !== 143000) return;
-
       // Niko attack
-      if (!removalTimeout) {
+      if (!removalTimeout && isFight) {
         increaseIntensity();
         createGlitchElements();
 
@@ -201,7 +204,7 @@ function frame() {
   }
 
   // Spawn line attacks
-  if (!lineTimeout && idleTime == 143000) {
+  if (!lineTimeout && isFight) {
       warnLine();
       lineTimeout = setTimeout(() => {
           lineTimeout = null; // Сбрасываем таймаут
@@ -209,7 +212,7 @@ function frame() {
   }
 
   // Spawn squares attacks
-  if (!squareTimeout && idleTime == 143000) {
+  if (!squareTimeout && isFight) {
       createSquare();
       squareTimeout = setTimeout(() => {
           squareTimeout = null; // Сбрасываем таймаут
