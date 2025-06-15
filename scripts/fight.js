@@ -1,4 +1,4 @@
-const { increaseIntensity } = require('./viegnette.js');
+const { increaseIntensity, decreaseIntensity } = require('./viegnette.js');
 
 function createGlitchElements() {
   // Random count from 4 to 8
@@ -126,4 +126,44 @@ function createSquare() {
   });
 }
 
-module.exports = { warnLine, createSquare, createGlitchElements };
+function createHeal() {
+  const heal = document.createElement("div");
+  heal.style.position = "absolute";
+  heal.style.zIndex = 1000; 
+  heal.style.backgroundColor = "green"; 
+  heal.style.width = "20px";
+  heal.style.height = "20px";
+  heal.style.top = "0px";
+  heal.style.left = Math.random() * (window.innerWidth - 30) + "px";
+
+  document.body.appendChild(heal);
+
+  // Falling anim
+  let positionY = 0;
+  let positionX = Math.random() < 0.5 ? -5 : 5; // Random horisontal direction
+
+  const interval = setInterval(() => {
+    positionY += 5;
+    heal.style.top = positionY + "px";
+
+    const currentLeft = parseFloat(heal.style.left);
+    heal.style.left = (currentLeft + positionX) + "px";
+
+    if (positionY > window.innerHeight) {
+      clearInterval(interval);
+      heal.remove();
+    }
+
+    if (parseFloat(heal.style.left) < 0 || parseFloat(heal.style.left) > window.innerWidth - 30) {
+      positionX = -positionX;
+    }
+  }, 50); // Update interval
+
+  // Do damage if mouse touches attack
+  heal.addEventListener("mouseover", (e) => {
+    decreaseIntensity();
+    heal.remove();
+  });
+}
+
+module.exports = { warnLine, createSquare, createHeal, createGlitchElements };

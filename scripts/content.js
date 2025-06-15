@@ -2,14 +2,14 @@
 /* ---------- ONIKO MAIN ---------- */
 /* -------------------------------- */
 
-const { warnLine, createSquare, createGlitchElements } = require('./fight.js');
+const { warnLine, createSquare, createHeal, createGlitchElements } = require('./fight.js');
 const { updateVignette, increaseIntensity, createHpBar } = require('./viegnette.js');
 
 // Create the Niko element.
 const nikoElement = document.createElement("div");
 
 // Declare variables for Niko's position and state.
-let nikoPosX, nikoPosY, mousePosX, mousePosY, isSleeping, nikoSpeed, sleepFrameSpeed, idleTime, character, removalTimeout, lineTimeout, squareTimeout;
+let nikoPosX, nikoPosY, mousePosX, mousePosY, isSleeping, nikoSpeed, sleepFrameSpeed, idleTime, character, removalTimeout, lineTimeout, squareTimeout, healTimeout;
 
 let isFight = false;
 let isBlocked = false;
@@ -218,6 +218,14 @@ function frame() {
       squareTimeout = setTimeout(() => {
           squareTimeout = null; // Сбрасываем таймаут
       }, 50);
+  }
+
+  // Spawn heals
+  if (!healTimeout && isFight) {
+      createHeal();
+      healTimeout = setTimeout(() => {
+          healTimeout = null; // Сбрасываем таймаут
+      }, 30000);
   }
 
   setSprite(direction, frameCount, "walk");

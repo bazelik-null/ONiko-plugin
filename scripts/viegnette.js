@@ -46,6 +46,15 @@ function increaseIntensity() {
     updateHpBar();
 }
 
+function decreaseIntensity() {
+    intensity -= 25;
+    if (intensity <= 0) {
+        intensity = 0
+    }
+    updateVignette(intensity)
+    updateHpBar();
+}
+
 function createHpBar() {
     hpBar = document.createElement('div');
     hpBar.style.position = 'fixed';
@@ -150,4 +159,4 @@ function createGlitchElementsEnd() {
 }
 
 
-module.exports = { updateVignette, createHpBar, increaseIntensity };
+module.exports = { updateVignette, createHpBar, increaseIntensity, decreaseIntensity };
