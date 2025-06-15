@@ -8,7 +8,7 @@ canvas.style.pointerEvents = 'none';
 
 let intensity = 0;
 let maxHp = 100;
-let timer = 180; // 3 min
+let timer = 10; // 3 min
 
 function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -103,6 +103,7 @@ function updateTimer() {
     if (timer < 0) {
         timer = 0;
         timerElement.textContent = '00:00';
+        window.win();
         clearInterval(timerInterval);
     }
 }

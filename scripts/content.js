@@ -12,6 +12,7 @@ const nikoElement = document.createElement("div");
 let nikoPosX, nikoPosY, mousePosX, mousePosY, isSleeping, nikoSpeed, sleepFrameSpeed, idleTime, character, removalTimeout, lineTimeout, squareTimeout;
 
 let isFight = false;
+let isBlocked = false;
 
 browser.storage.local.get([
   "nikoPosX",
@@ -126,13 +127,13 @@ function init() {
     isSleeping = result.isSleeping || undefined;
   });
 
-  resetSleepTimer();
+  resetSleepTimer(isBlocked);
   window.requestAnimationFrame(onAnimationFrame);
 
   document.addEventListener('mousemove', (event) => {
     mousePosX = event.clientX;
     mousePosY = event.clientY;
-    resetSleepTimer();
+    resetSleepTimer(isBlocked);
     if (!document.hidden) { 
       window.requestAnimationFrame(onAnimationFrame);
     }
@@ -244,14 +245,47 @@ function onAnimationFrame(timestamp) {
   window.requestAnimationFrame(onAnimationFrame);
 }
 
-function resetSleepTimer() {
-  clearTimeout(sleepTimer);
-  sleepTimer = null;
-  if (isSleeping) {
-    isSleeping = false;
-    sleepFrameCount = 0;
+function resetSleepTimer(isBlocked) {
+  if (!isBlocked){
+    clearTimeout(sleepTimer);
+    sleepTimer = null;
+    if (isSleeping) {
+      isSleeping = false;
+      sleepFrameCount = 0;
+    }
+  } else {
+    return;
   }
 }
+
+function createLabelWon() {
+    labelElement = document.createElement('div');
+    labelElement.style.position = 'fixed';
+    labelElement.style.top = '50%';
+    labelElement.style.left = '50%';
+    labelElement.style.transform = 'translateX(-50%)';
+    labelElement.style.fontSize = '100px';
+    labelElement.style.fontWeight = 'bold';
+    labelElement.style.zIndex = '1001';
+    labelElement.style.color = "green";
+    document.body.appendChild(labelElement);
+
+    labelElement.textContent = 'YOU WON!';
+}
+
+function win() {
+  isFight = false;
+  isSleeping = true;
+  isBlocked = true;
+  createLabelWon()
+  const options = {
+    idleTime: 60000
+  }
+  browser.storage.local.set(options)
+  updateVignette(0);
+  window.removeEventListener('wheel')
+}
+window.win = win;
 
 /* -------------------------- */
 /* ---------- SYNC ---------- */
@@ -289,7 +323,7 @@ window.addEventListener("visibilitychange", function() {
       mousePosY = result.mousePosY || mousePosY;
       isSleeping = result.isSleeping || isSleeping;
       // Restart the animation loop.
-      resetSleepTimer();
+      resetSleepTimer(isBlocked);
       window.requestAnimationFrame(onAnimationFrame);
     });
   }
