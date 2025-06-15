@@ -14,6 +14,7 @@ let nikoPosX, nikoPosY, mousePosX, mousePosY, isSleeping, nikoSpeed, sleepFrameS
 let isFight = false;
 let isBlocked = false;
 let isPhase2 = false;
+let isPhase3 = false;
 
 browser.storage.local.get([
   "nikoPosX",
@@ -209,13 +210,19 @@ function frame() {
   // Spawn line attacks
   if (!lineTimeout && isFight) {
     warnLine();
-    lineTimeout = setTimeout(() => {
-      lineTimeout = null;
-    }, 1000); // 1 second
+    if (!isPhase3) {
+      lineTimeout = setTimeout(() => {
+        lineTimeout = null;
+      }, 1000); // 1 second
+    } else {
+      lineTimeout = setTimeout(() => {
+        lineTimeout = null;
+      }, 750); // 1 second
+    }
   }
 
   // Spawn squares attacks
-  if (!squareTimeout && isFight) {
+  if (!squareTimeout && isFight && !isPhase3) {
     createSquare();
     if (!isPhase2) {
     squareTimeout = setTimeout(() => {
@@ -228,19 +235,25 @@ function frame() {
   }
 
   // Spawn heals
-  if (!healTimeout && isFight) {
+  if (!healTimeout && isFight && !isPhase3) {
     createHeal();
     healTimeout = setTimeout(() => {
       healTimeout = null;
-    }, 60000); // 60 seconds
+    }, 30000); // 60 seconds
   }
 
   // Spawn homing attacks
   if (!homingTimeout && isFight && isPhase2) {
     createHoming();
-    homingTimeout = setTimeout(() => {
-      homingTimeout = null;
-    }, 5000);
+    if (!isPhase3) {
+      homingTimeout = setTimeout(() => {
+        homingTimeout = null;
+      }, 7000);
+    } else {
+      homingTimeout = setTimeout(() => {
+        homingTimeout = null;
+      }, 500);
+    }
   }
 
   if (!isFight) {
@@ -292,6 +305,11 @@ function startPhase2() {
   isPhase2 = true
 }
 window.startPhase2 = startPhase2;
+
+function startPhase3() {
+  isPhase3 = true
+}
+window.startPhase3 = startPhase3;
 
 function createLabelWon() {
     labelElement = document.createElement('div');

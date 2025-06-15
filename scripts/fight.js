@@ -24,7 +24,7 @@ function createGlitchElements() {
       elements.push(div);
   }
 
-  // Delete glitches after 2 seconds
+  // Delete glitches after 1 second
   setTimeout(() => {
       elements.forEach(element => {
           document.body.removeChild(element);
@@ -36,15 +36,15 @@ function createLine(warn) {
   const line = document.createElement("div");
   line.style.position = "absolute";
   line.style.zIndex = 1000; 
-  line.style.backgroundColor = "purple";
-  line.style.width = "20px";
+  line.style.backgroundColor = "rgb(66, 0, 128)";
+  line.style.width = "25px";
   line.style.height = "100vh";
   line.style.top = "0px";
   line.style.left = warn.style.left;
 
   if (warn.style.width === "100vw") {
     line.style.width = "100vw";
-    line.style.height = "30px";
+    line.style.height = "25px";
     line.style.top = warn.style.top;
     line.style.left = "0px";
   }
@@ -61,14 +61,14 @@ function createLine(warn) {
   setTimeout(() => {
     line.remove();
     warn.remove();
-  }, 1500);
+  }, 1000);
 }
 
 function warnLine() {
   const warn = document.createElement("div");
   warn.style.position = "absolute";
   warn.style.zIndex = 1000; 
-  warn.style.backgroundColor = "rgba(128, 0, 128, 0.5)";
+  warn.style.backgroundColor = "rgba(66, 0, 128, 0.5)";
   warn.style.width = "10px";
   warn.style.height = "100vh";
   warn.style.top = "0px";
@@ -93,7 +93,7 @@ function createSquare() {
   const square = document.createElement("div");
   square.style.position = "absolute";
   square.style.zIndex = 1000; 
-  square.style.backgroundColor = "purple"; 
+  square.style.backgroundColor = "rgb(66, 0, 128)"; 
   square.style.width = "20px";
   square.style.height = "20px";
   square.style.top = "0px";
@@ -126,6 +126,7 @@ function createSquare() {
   square.addEventListener("mouseover", (e) => {
     increaseDamage();
     createGlitchElements();
+    square.remove();
   });
 }
 
@@ -143,7 +144,7 @@ function createHoming() {
   homing.style.height = "0";
   homing.style.borderLeft = "15px solid transparent";
   homing.style.borderRight = "15px solid transparent";
-  homing.style.borderBottom = "30px solid purple";
+  homing.style.borderBottom = "30px solid rgb(66, 0, 128)";
   document.body.appendChild(homing);
 
   let homingPosX = Math.random() * window.innerWidth;
@@ -160,11 +161,9 @@ function createHoming() {
       const normalizedX = diffX / distance;
       const normalizedY = diffY / distance;
 
-      // Поворачиваем треугольник в сторону курсора
       const angle = Math.atan2(normalizedY, normalizedX) * (180 / Math.PI);
       homing.style.transform = `rotate(${angle}deg)`;
 
-      // Обновляем позицию треугольника
       homingPosX -= (diffX / distance) * homingSpeed;
       homingPosY -= (diffY / distance) * homingSpeed;
 
@@ -172,17 +171,16 @@ function createHoming() {
       homing.style.left = `${homingPosX}px`;
     }
 
-    // Проверка на пересечение с курсором
     if (Math.abs(homingPosX - mousePosX) < 30 && Math.abs(homingPosY - mousePosY) < 30) {
       increaseDamage();
       homing.remove();
       createGlitchElements();
     } else {
-      requestAnimationFrame(moveHoming); // Продолжаем движение
+      requestAnimationFrame(moveHoming);
     }
   }
 
-  moveHoming(); // Запускаем движение
+  moveHoming();
 
   // Удаляем треугольник через 5 секунд
   setTimeout(() => {

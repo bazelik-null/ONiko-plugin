@@ -1,4 +1,5 @@
 let isDied = false;
+let isPhase2Blocked = false;
 const canvas = document.createElement('canvas');
 const ctx = canvas.getContext('2d');
 document.body.appendChild(canvas);
@@ -22,8 +23,8 @@ function drawVignette(damage) {
     const height = canvas.height;
 
     const gradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, Math.max(width, height) / 2);
-    gradient.addColorStop(0, `rgba(255, 0, 0, 0)`); // Transparent center
-    gradient.addColorStop(1, `rgba(255, 0, 0, ${damage / 100})`); // Red viegnette
+    gradient.addColorStop(0, `rgba(134, 0, 0, 0)`); // Transparent center
+    gradient.addColorStop(1, `rgba(134, 0, 0, ${damage / 100})`); // Red viegnette
 
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
@@ -51,7 +52,7 @@ function increaseDamage() {
 }
 
 function decreaseDamage() {
-    damage -= 25;
+    damage -= 15;
     if (damage <= 0) {
         damage = 0
     }
@@ -61,14 +62,22 @@ function decreaseDamage() {
 
 function attackNiko() {
     nikoDamage += 5;
+    let currentHp = nikoMaxHp - nikoDamage;
+
     if (nikoDamage >= nikoMaxHp) {
         nikoDamage = nikoMaxHp
         if (!isDied) {
             window.win()
         }
     }
-    if (nikoDamage >= nikoMaxHp / 2) {
+
+    if (currentHp <= nikoMaxHp * 2 / 3 && !isPhase2Blocked) {
         window.startPhase2();
+    }
+
+    if (currentHp <= nikoMaxHp / 3) {
+        window.startPhase3();
+        isPhase2Blocked = true;
     }
     updateHpBarNiko();
 }
@@ -143,7 +152,9 @@ function updateHpBarNiko() {
     if (currentHp < 0) currentHp = 0;
     
     let width = (currentHp / nikoMaxHp) * 100 + '%';
-    if (nikoDamage >= nikoMaxHp / 2) {
+    if (currentHp <= nikoMaxHp / 3) {
+        innerBarNiko.style.background = `linear-gradient(to right,rgb(248, 104, 61) ${width}, red ${width})`;
+    } else if (currentHp <= nikoMaxHp * 2 / 3 && !isPhase2Blocked) {
         innerBarNiko.style.background = `linear-gradient(to right, yellow ${width}, red ${width})`;
     } else {
         innerBarNiko.style.background = `linear-gradient(to right, green ${width}, red ${width})`;
