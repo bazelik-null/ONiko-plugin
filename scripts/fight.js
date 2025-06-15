@@ -34,7 +34,7 @@ function createLine(warn) {
   line.style.position = "absolute";
   line.style.zIndex = 1000; 
   line.style.backgroundColor = "purple";
-  line.style.width = "30px";
+  line.style.width = "20px";
   line.style.height = "100vh";
   line.style.top = "0px";
   line.style.left = warn.style.left;
@@ -91,8 +91,8 @@ function createSquare() {
   square.style.position = "absolute";
   square.style.zIndex = 1000; 
   square.style.backgroundColor = "purple"; 
-  square.style.width = "30px";
-  square.style.height = "30px";
+  square.style.width = "20px";
+  square.style.height = "20px";
   square.style.top = "0px";
   square.style.left = Math.random() * (window.innerWidth - 30) + "px";
 

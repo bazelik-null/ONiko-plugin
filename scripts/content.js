@@ -3,7 +3,7 @@
 /* -------------------------------- */
 
 const { warnLine, createSquare, createGlitchElements } = require('./fight.js');
-const { updateVignette, increaseIntensity } = require('./viegnette.js');
+const { updateVignette, increaseIntensity, createHpBar } = require('./viegnette.js');
 
 // Create the Niko element.
 const nikoElement = document.createElement("div");
@@ -119,6 +119,7 @@ function init() {
   });
 
   updateVignette(0)
+  createHpBar();
 
   resetSleepTimer();
   window.requestAnimationFrame(onAnimationFrame);

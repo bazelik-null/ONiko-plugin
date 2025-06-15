@@ -7,6 +7,7 @@ canvas.style.left = '0';
 canvas.style.pointerEvents = 'none';
 
 let intensity = 0;
+let maxHp = 100;
 
 function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -40,6 +41,35 @@ function increaseIntensity() {
         intensity = 100
     }
     updateVignette(intensity)
+    updateHpBar();
+}
+
+function createHpBar() {
+    hpBar = document.createElement('div');
+    hpBar.style.position = 'fixed';
+    hpBar.style.top = '10px'; // Расстояние от верхнего края экрана
+    hpBar.style.left = '50%';
+    hpBar.style.transform = 'translateX(-50%)'; // Центрирование по горизонтали
+    hpBar.style.width = '200px'; // Ширина HP бара
+    hpBar.style.height = '20px'; // Высота HP бара
+    hpBar.style.border = '1px solid black';
+    hpBar.style.zIndex = '1000'; // Установите высокий z-index, чтобы HP бар был виден поверх других элементов
+
+    innerBar = document.createElement('div');
+    innerBar.style.height = '100%';
+    innerBar.style.background = 'linear-gradient(to right, green 100%, green 100%, red 0%)'; // Начальный цвет HP бара
+
+    hpBar.appendChild(innerBar);
+    document.body.appendChild(hpBar);
+}
+
+function updateHpBar() {
+    let currentHp = maxHp - intensity; // Рассчитайте текущее HP
+    
+    if (currentHp < 0) currentHp = 0; // Ограничите минимальное значение HP
+    
+    let width = (currentHp / maxHp) * 100 + '%'; // Рассчитайте ширину HP бара
+    innerBar.style.background = `linear-gradient(to right, green ${width}, red ${width})`;
 }
 
 // Spam with glitches
@@ -65,4 +95,4 @@ function createGlitchElementsEnd() {
 }
 
 
-module.exports = { updateVignette, increaseIntensity };
+module.exports = { updateVignette, createHpBar, increaseIntensity };
