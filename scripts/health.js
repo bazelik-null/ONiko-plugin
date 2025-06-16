@@ -1,6 +1,12 @@
+import {createGlitchElements} from './projectiles.js';
+import {win} from "./fight.js"
+
 let isDied = false;
+export let phase = 0;
+
 const canvas = document.createElement('canvas');
 const ctx = canvas.getContext('2d');
+
 document.body.appendChild(canvas);
 canvas.style.position = 'fixed';
 canvas.style.top = '0';
@@ -28,7 +34,7 @@ function drawVignette(damage) {
 
     const gradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, Math.max(width, height) / 2);
     gradient.addColorStop(0, `rgba(134, 0, 0, 0)`); // Transparent center
-    gradient.addColorStop(1, `rgba(134, 0, 0, ${damage / 100})`); // Red viegnette
+    gradient.addColorStop(1, `rgba(134, 0, 0, ${damage / 100})`); // Red vignette
 
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
@@ -44,8 +50,8 @@ window.addEventListener('resize', resizeCanvas);
 
 export function increaseDamage() {
     damage += 5;
-    if (damage >= maxHp) {
-        createGlitchElementsEnd()
+    if (damage >= maxHp && !isDied) {
+        createGlitchSpam()
         damage = maxHp
         isDied = true
     }
@@ -69,15 +75,15 @@ export function attackNiko() {
     if (nikoDamage >= nikoMaxHp) {
         nikoDamage = nikoMaxHp
         if (!isDied) {
-            window.win()
+            win()
         }
     }
 
     if (currentHp <= nikoMaxHp / 3) {
-        window.startPhase3();
+        phase = 2
     }
     else if (currentHp <= nikoMaxHp * 2 / 3) {
-        window.startPhase2();
+        phase = 1
     }
 
     updateHpBarNiko();
@@ -162,27 +168,10 @@ function updateHpBarNiko() {
     }
 }
 
-// Spam with glitches
-function createGlitchElementsEnd() {
+function createGlitchSpam() {
     const count = 300
-    //const elements = [];
 
     for (let i = 0; i < count; i++) {
-        const div = document.createElement('div');
-        div.style.width = '128px';
-        div.style.height = '128px';
-        div.style.backgroundImage = `url(${browser.runtime.getURL("img/glitch.png")})`;
-        div.style.backgroundSize = 'cover';
-        div.style.position = 'absolute';
-        div.style.top = `${Math.random() * 100}vh`;
-        div.style.left = `${Math.random() * 100}vw`;
-        div.style.zIndex = '9999';
-        div.style.opacity = '1';
-        div.style.backgroundColor = 'transparent';
-        document.body.appendChild(div);
-        //elements.push(div);
+        createGlitchElements(true);
     }
 }
-
-
-//module.exports = { updateVignette, createHpBarPlayer, increaseDamage, decreaseDamage, attackNiko, createHpBarNiko };

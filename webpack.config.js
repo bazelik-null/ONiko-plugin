@@ -13,7 +13,8 @@ const configuration = {
         options: path.join(__dirname, 'scripts', 'options.js'),
         content: path.join(__dirname, 'scripts', 'content.js'),
         projectiles: path.join(__dirname, 'scripts', 'projectiles.js'),
-        health: path.join(__dirname, 'scripts', 'health.js')
+        health: path.join(__dirname, 'scripts', 'health.js'),
+        utils: path.join(__dirname, 'scripts', 'utils.js')
     },
     output: {
         path: path.join(__dirname, 'dist'),

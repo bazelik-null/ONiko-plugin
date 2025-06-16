@@ -1,229 +1,244 @@
-import { increaseDamage, decreaseDamage} from "./health.js";
+import {increaseDamage, decreaseDamage} from "./health.js";
+import {LineData, HomingData} from "./utils.js";
 
 const homingSpeed = 5;
 let mousePosX = 0;
 let mousePosY = 0;
 
-export function createGlitchElements() {
-	const count = 3
-	const elements = [];
+let homingArray: Array<HomingData> = [];
+let linesArray: Array<LineData> = [];
 
-	for (let i = 0; i < count; i++) {
-		const div = document.createElement('div');
-		div.style.width = '128px';
-		div.style.height = '128px';
-		div.style.backgroundImage = `url(${browser.runtime.getURL("img/glitch.png")})`;
-		div.style.backgroundSize = 'cover';
-		div.style.position = 'absolute';
-		div.style.top = `${Math.random() * 100}vh`;
-		div.style.left = `${Math.random() * 100}vw`;
-		div.style.zIndex = '9999';
-		div.style.opacity = '1';
-		div.style.backgroundColor = 'transparent';
-		document.body.appendChild(div);
-		elements.push(div);
-	}
+export function createGlitchElements(isPermanent: Boolean = false) {
+    const count = 3
+    const elements = [];
 
-	// Delete glitches after 1 second
-	setTimeout(() => {
-		elements.forEach(element => {
-			document.body.removeChild(element);
-		});
-	}, 1000);
+    for (let i = 0; i < count; i++) {
+        const div = document.createElement('div');
+        div.style.width = '128px';
+        div.style.height = '128px';
+        div.style.backgroundImage = `url(${browser.runtime.getURL("img/glitch.png")})`;
+        div.style.backgroundSize = 'cover';
+        div.style.position = 'absolute';
+        div.style.top = `${Math.random() * 100}vh`;
+        div.style.left = `${Math.random() * 100}vw`;
+        div.style.zIndex = '9999';
+        div.style.opacity = '1';
+        div.style.backgroundColor = 'transparent';
+        document.body.appendChild(div);
+        elements.push(div);
+    }
+
+    if (isPermanent) return;
+
+    setTimeout(() => {
+        elements.forEach(element => {
+            document.body.removeChild(element);
+        });
+    }, 1000);
 }
 
-export function createLine(warn) {
-	const line = document.createElement("div");
-	line.style.position = "absolute";
-	line.style.zIndex = 1000;
-	line.style.backgroundColor = "rgb(66, 0, 128)";
-	line.style.width = "25px";
-	line.style.height = "100vh";
-	line.style.top = "0px";
-	line.style.left = warn.style.left;
+export function createWarnLine() {
+    const warn = document.createElement("div");
+    const isHorizontal = Math.random() > 0.5;
+    const height = isHorizontal ? "10px" : "100vh";
+    const width = isHorizontal ? "100vw" : "10px";
+    const top = isHorizontal ? Math.floor(Math.random() * (window.innerHeight - 1)) : 0;
+    const left = isHorizontal ? 0 : Math.floor(Math.random() * (window.innerWidth - 1));
 
-	if (warn.style.width === "100vw") {
-		line.style.width = "100vw";
-		line.style.height = "25px";
-		line.style.top = warn.style.top;
-		line.style.left = "0px";
-	}
+    warn.style.position = "absolute";
+    warn.style.zIndex = 1000;
+    warn.style.backgroundColor = "rgba(66, 0, 128, 0.5)";
+    warn.style.height = height;
+    warn.style.width = width;
+    warn.style.top = `${top}px`;
+    warn.style.left = `${left}px`;
 
-	document.body.appendChild(line);
+    document.body.appendChild(warn);
 
-	// Do damage if mouse touches attack
-	line.addEventListener("mouseover", () => {
-		increaseDamage();
-		createGlitchElements();
-	});
+    const lineData = new LineData(isHorizontal, left, top);
 
-	// Delete line after 2 seconds
-	setTimeout(() => {
-		line.remove();
-		warn.remove();
-	}, 1000);
+    // Create line after 1 second of waiting
+    setTimeout(() => {
+        createLine(warn, lineData);
+        warn.remove();
+    }, 1000);
 }
 
-export function warnLine() {
-	const warn = document.createElement("div");
-	warn.style.position = "absolute";
-	warn.style.zIndex = 1000;
-	warn.style.backgroundColor = "rgba(66, 0, 128, 0.5)";
-	warn.style.width = "10px";
-	warn.style.height = "100vh";
-	warn.style.top = "0px";
-	warn.style.left = `${Math.floor(Math.random() * (window.innerWidth - 1))}px`;
+export function createLine(warn, lineData: LineData) {
+    const line = document.createElement("div");
+    line.style.position = "absolute";
+    line.style.zIndex = 1000;
+    line.style.backgroundColor = "rgb(66, 0, 128)";
+    line.style.width = "25px";
+    line.style.height = "100vh";
+    line.style.top = "0px";
+    line.style.left = warn.style.left;
 
-	if (Math.random() > 0.5) {
-		warn.style.width = "100vw";
-		warn.style.height = "10px";
-		warn.style.top = `${Math.floor(Math.random() * (window.innerHeight - 1))}px`;
-		warn.style.left = "0px";
-	}
+    if (warn.style.width === "100vw") {
+        line.style.width = "100vw";
+        line.style.height = "25px";
+        line.style.top = warn.style.top;
+        line.style.left = "0px";
+    }
 
-	document.body.appendChild(warn);
+    document.body.appendChild(line);
 
-	// Create line after 1 second of waiting
-	setTimeout(() => {
-		createLine(warn);
-	}, 1000);
+    linesArray.push(lineData);
+
+    // Do damage if mouse touches attack
+    line.addEventListener("mouseover", () => {
+        increaseDamage();
+        createGlitchElements();
+    });
+
+    // Delete line after 2 seconds
+    setTimeout(() => {
+        line.remove();
+        linesArray.splice(0, 1);
+    }, 1000);
 }
 
 export function createSquare() {
-	const square = document.createElement("div");
-	square.style.position = "absolute";
-	square.style.zIndex = 1000;
-	square.style.backgroundColor = "rgb(66, 0, 128)";
-	square.style.width = "20px";
-	square.style.height = "20px";
-	square.style.top = "0px";
-	square.style.left = Math.random() * (window.innerWidth - 30) + "px";
+    const square = document.createElement("div");
+    square.style.position = "absolute";
+    square.style.zIndex = 1000;
+    square.style.backgroundColor = "rgb(66, 0, 128)";
+    square.style.width = "20px";
+    square.style.height = "20px";
+    square.style.top = "0px";
+    square.style.left = Math.random() * (window.innerWidth - 30) + "px";
 
-	document.body.appendChild(square);
+    document.body.appendChild(square);
 
-	// Falling anim
-	let positionY = 0;
-	let positionX = Math.random() < 0.5 ? -5 : 5; // Random horisontal direction
+    // Falling anim
+    let positionY = 0;
+    let positionX = Math.random() < 0.5 ? -5 : 5; // Random horizontal direction
 
-	const interval = setInterval(() => {
-		positionY += 5;
-		square.style.top = positionY + "px";
+    const interval = setInterval(() => {
+        positionY += 5;
+        square.style.top = positionY + "px";
 
-		const currentLeft = parseFloat(square.style.left);
-		square.style.left = (currentLeft + positionX) + "px";
+        const currentLeft = parseFloat(square.style.left);
+        square.style.left = (currentLeft + positionX) + "px";
 
-		if (positionY > window.innerHeight) {
-			clearInterval(interval);
-			square.remove();
-		}
+        if (positionY > window.innerHeight) {
+            clearInterval(interval);
+            square.remove();
+        }
 
-		if (parseFloat(square.style.left) < 0 || parseFloat(square.style.left) > window.innerWidth - 30) {
-			positionX = -positionX;
-		}
-	}, 50); // Update interval
+        if (parseFloat(square.style.left) < 0 || parseFloat(square.style.left) > window.innerWidth - 30) {
+            positionX = -positionX;
+        }
+    }, 50); // Update interval
 
-	// Do damage if mouse touches attack
-	square.addEventListener("mouseover", () => {
-		increaseDamage();
-		createGlitchElements();
-		square.remove();
-	});
+    // Do damage if mouse touches attack
+    square.addEventListener("mouseover", () => {
+        increaseDamage();
+        createGlitchElements();
+        square.remove();
+    });
 }
 
 // Обработчик движения мыши
 document.addEventListener("mousemove", (event) => {
-	mousePosX = event.clientX;
-	mousePosY = event.clientY;
+    mousePosX = event.clientX;
+    mousePosY = event.clientY;
 });
 
 export function createHoming() {
-	const homing = document.createElement("div");
-	homing.style.position = "absolute";
-	homing.style.zIndex = 1000;
-	homing.style.width = "0";
-	homing.style.height = "0";
-	homing.style.borderLeft = "15px solid transparent";
-	homing.style.borderRight = "15px solid transparent";
-	homing.style.borderBottom = "30px solid rgb(66, 0, 128)";
-	document.body.appendChild(homing);
+    const homing = document.createElement("div");
+    homing.style.position = "absolute";
+    homing.style.zIndex = 1000;
+    homing.style.width = "0";
+    homing.style.height = "0";
+    homing.style.borderLeft = "15px solid transparent";
+    homing.style.borderRight = "15px solid transparent";
+    homing.style.borderBottom = "30px solid rgb(66, 0, 128)";
+    document.body.appendChild(homing);
 
-	let homingPosX = Math.random() * window.innerWidth;
-	let homingPosY = Math.random() * window.innerHeight;
-	homing.style.top = `${homingPosY}px`;
-	homing.style.left = `${homingPosX}px`;
 
-	function moveHoming() {
-		const diffX = homingPosX - mousePosX;
-		const diffY = homingPosY - mousePosY;
-		const distance = Math.hypot(diffX, diffY);
+    let homingPosX = Math.random() * window.innerWidth;
+    let homingPosY = Math.random() * window.innerHeight;
 
-		if (distance) {
-			const normalizedX = diffX / distance;
-			const normalizedY = diffY / distance;
+    homing.style.top = `${homingPosY}px`;
+    homing.style.left = `${homingPosX}px`;
 
-			const angle = Math.atan2(normalizedY, normalizedX) * (180 / Math.PI);
-			homing.style.transform = `rotate(${angle}deg)`;
+    const homingData = new HomingData(homingPosX, homingPosY)
+    homingArray.push(homingData)
 
-			homingPosX -= (diffX / distance) * homingSpeed;
-			homingPosY -= (diffY / distance) * homingSpeed;
+    function moveHoming() {
+        const diffX = homingPosX - mousePosX;
+        const diffY = homingPosY - mousePosY;
+        const distance = Math.hypot(diffX, diffY);
 
-			homing.style.top = `${homingPosY}px`;
-			homing.style.left = `${homingPosX}px`;
-		}
+        if (distance) {
+            const normalizedX = diffX / distance;
+            const normalizedY = diffY / distance;
 
-		if (Math.abs(homingPosX - mousePosX) < 30 && Math.abs(homingPosY - mousePosY) < 30) {
-			increaseDamage();
-			homing.remove();
-			createGlitchElements();
-		} else {
-			requestAnimationFrame(moveHoming);
-		}
-	}
+            const angle = Math.atan2(normalizedY, normalizedX) * (180 / Math.PI);
+            homing.style.transform = `rotate(${angle}deg)`;
 
-	moveHoming();
+            homingPosX -= (diffX / distance) * homingSpeed;
+            homingPosY -= (diffY / distance) * homingSpeed;
 
-	// Удаляем треугольник через 5 секунд
-	setTimeout(() => {
-		homing.remove();
-	}, 5000);
+            homing.style.top = `${homingPosY}px`;
+            homing.style.left = `${homingPosX}px`;
+        }
+
+        if (Math.abs(homingPosX - mousePosX) < 30 && Math.abs(homingPosY - mousePosY) < 30) {
+            increaseDamage();
+            homing.remove();
+            homingArray.splice(homingArray.indexOf(homingData), 1);
+            createGlitchElements();
+        } else {
+            requestAnimationFrame(moveHoming);
+        }
+    }
+
+    moveHoming();
+
+    // Удаляем треугольник через 5 секунд
+    setTimeout(() => {
+        homing.remove();
+    }, 5000);
 }
 
 export function createHeal() {
-	const heal = document.createElement("div");
-	heal.style.position = "absolute";
-	heal.style.zIndex = 1000;
-	heal.style.backgroundColor = "green";
-	heal.style.width = "20px";
-	heal.style.height = "20px";
-	heal.style.top = "0px";
-	heal.style.left = Math.random() * (window.innerWidth - 30) + "px";
+    const heal = document.createElement("div");
+    heal.style.position = "absolute";
+    heal.style.zIndex = 1000;
+    heal.style.backgroundColor = "green";
+    heal.style.width = "20px";
+    heal.style.height = "20px";
+    heal.style.top = "0px";
+    heal.style.left = Math.random() * (window.innerWidth - 30) + "px";
 
-	document.body.appendChild(heal);
+    document.body.appendChild(heal);
 
-	// Falling anim
-	let positionY = 0;
-	let positionX = Math.random() < 0.5 ? -5 : 5; // Random horisontal direction
+    // Falling anim
+    let positionY = 0;
+    let positionX = Math.random() < 0.5 ? -5 : 5; // Random horizontal direction
 
-	const interval = setInterval(() => {
-		positionY += 5;
-		heal.style.top = positionY + "px";
+    const interval = setInterval(() => {
+        positionY += 5;
+        heal.style.top = positionY + "px";
 
-		const currentLeft = parseFloat(heal.style.left);
-		heal.style.left = (currentLeft + positionX) + "px";
+        const currentLeft = parseFloat(heal.style.left);
+        heal.style.left = (currentLeft + positionX) + "px";
 
-		if (positionY > window.innerHeight) {
-			clearInterval(interval);
-			heal.remove();
-		}
+        if (positionY > window.innerHeight) {
+            clearInterval(interval);
+            heal.remove();
+        }
 
-		if (parseFloat(heal.style.left) < 0 || parseFloat(heal.style.left) > window.innerWidth - 30) {
-			positionX = -positionX;
-		}
-	}, 50); // Update interval
+        if (parseFloat(heal.style.left) < 0 || parseFloat(heal.style.left) > window.innerWidth - 30) {
+            positionX = -positionX;
+        }
+    }, 50); // Update interval
 
-	// Do damage if mouse touches attack
-	heal.addEventListener("mouseover", () => {
-		decreaseDamage();
-		heal.remove();
-	});
+    // Do damage if mouse touches attack
+    heal.addEventListener("mouseover", () => {
+        decreaseDamage();
+        heal.remove();
+    });
 }
