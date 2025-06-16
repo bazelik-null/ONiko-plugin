@@ -6,7 +6,7 @@ Previously based on [this GitHub repository](https://github.com/adryd325/oneko.j
 
 >[!WARNING]
 > 
-> This is a branch for the experimental version of the plugin. It will not be included in release, and bugs related to it will not be reviewed.
+> This is a branch for the experimental version of the plugin. Work In Progress, bugs related to it will not be reviewed.
 
 ---
 
