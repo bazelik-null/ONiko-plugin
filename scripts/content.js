@@ -1,9 +1,11 @@
-﻿/* -------------------------------- */
+﻿//@flow
+
+/* -------------------------------- */
 /* ---------- ONIKO MAIN ---------- */
 /* -------------------------------- */
 
-import {updateVignette, createHpBarPlayer, createHpBarNiko} from './health.js';
-import {fightFrame, moveNikoRandom, isFight} from "./fight.js";
+import { updateVignette, createHpBarPlayer, createHpBarNiko } from './health.js';
+import { fightFrame, moveNikoRandom, isFight } from "./fight.js";
 
 const nikoElement = document.createElement("div");
 
@@ -15,17 +17,7 @@ let nikoSpeed, sleepFrameSpeed, idleTime, character;
 let frameCount = 0;
 let sleepFrameCount = 0;
 let sleepTimer;
-let spriteWalk = {
-    width: 48,
-    height: 64,
-    idle: [[0, 0]],
-    N: [[0, 1], [-1, 1], [-2, 1], [-3, 1]],
-    E: [[0, 2], [-1, 2], [-2, 2], [-3, 2]],
-    W: [[0, 3], [-1, 3], [-2, 3], [-3, 3]],
-    S: [[0, 4], [-1, 4], [-2, 4], [-3, 4]]
-}
-let spriteSet = spriteWalk;
-let spriteSleep;
+let spriteWalk, spriteSleep, spriteSet;
 let nikoWalk, nikoSleep;
 
 window.setNikoPosX = setNikoPosX
@@ -43,9 +35,7 @@ window.addEventListener("beforeunload", function () {
 
 init();
 
-browser.storage.local.get(["nikoPosX", "nikoPosY", "mousePosX", "mousePosY", "isSleeping", "sleepFrameSpeed", "nikoSpeed", "idleTime", "sprite"
-
-]).then((result) => {
+browser.storage.local.get(["nikoPosX", "nikoPosY", "mousePosX", "mousePosY", "isSleeping", "sleepFrameSpeed", "nikoSpeed", "idleTime", "sprite"]).then((result) => {
     nikoPosX = result.nikoPosX || 32;
     nikoPosY = result.nikoPosY || 32;
     mousePosX = result.mousePosX || 0;
@@ -66,7 +56,7 @@ browser.storage.local.get(["nikoPosX", "nikoPosY", "mousePosX", "mousePosY", "is
         createHpBarNiko();
         window.addEventListener('wheel', (event) => {
             event.preventDefault();
-        }, {passive: false});
+        }, { passive: false });
     }
 
     fetch(browser.runtime.getURL("img/" + character + "/meta.json"))

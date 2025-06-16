@@ -1,6 +1,8 @@
-import {increaseDamage, decreaseDamage, attackNiko} from "./health.js";
-import {LineData, HomingData} from "./utils.js";
-import {isDead} from "./health.js";
+//@flow
+
+import { increaseDamage, decreaseDamage, attackNiko } from "./health.js";
+import { LineData, HomingData } from "./utils.js";
+import { isDead } from "./health.js";
 
 const homingSpeed = 5;
 let mousePosX = 0;

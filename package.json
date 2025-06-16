@@ -9,7 +9,8 @@
     "build-firefox": "convert-manifest-format --firefox && webpack --mode production",
     "watch-chromium": "convert-manifest-format --chrome && webpack --mode development --watch",
     "watch-firefox": "convert-manifest-format --firefox && webpack --mode development --watch",
-    "flow": "flow"
+    "flow": "flow",
+    "eslint": "eslint"
   },
   "repository": {
     "type": "git",
@@ -34,9 +35,11 @@
     "convert-manifest-format": "^0.6.0",
     "copy-webpack-plugin": "^13.0.0",
     "eslint": "^9.29.0",
+    "eslint-plugin-ft-flow": "^3.0.11",
     "file-loader": "^6.2.0",
     "flow-bin": "^0.273.1",
     "globals": "^16.2.0",
+    "hermes-eslint": "^0.28.1",
     "node-fetch": "^3.3.2",
     "webextension-polyfill": "^0.12.0",
     "webpack": "^5.99.9",

@@ -1,16 +1,18 @@
-import {attackNiko, updateVignette, phase, isDead} from './health.js'
-import {setSprite, updateNikoPosition, direction, nikoPosX, nikoPosY, mousePosX, mousePosY, width, height} from './content.js'
-import {createWarnLine, createSquare, createHeal, createGlitchElements, createHoming, checkLineCollision, checkHomingCollision} from "./projectiles.js";
+//@flow
+
+import { attackNiko, updateVignette, phase, isDead } from './health.js'
+import { setSprite, updateNikoPosition, direction, nikoPosX, nikoPosY, mousePosX, mousePosY, width, height } from './content.js'
+import { createWarnLine, createSquare, createHeal, createGlitchElements, createHoming, checkLineCollision, checkHomingCollision } from "./projectiles.js";
 
 let removalTimeout, lineTimeout, squareTimeout, healTimeout, homingTimeout;
 export let isFight = false;
 
 window.setFight = setFight;
 
-function setFight(value: boolean){
+function setFight(value: boolean) {
     isFight = value;
 }
-export function moveNikoRandom(){
+export function moveNikoRandom() {
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
     const randomX = Math.floor(Math.random() * (screenWidth - 100));
@@ -65,7 +67,7 @@ export function fightFrame() {
         }
     }
 
-// Spawn squares attacks
+    // Spawn squares attacks
     if (!squareTimeout && phase < 2) {
         createSquare();
         if (phase === 0) {
@@ -79,7 +81,7 @@ export function fightFrame() {
         }
     }
 
-// Spawn heals
+    // Spawn heals
     if (!healTimeout) {
         createHeal();
         healTimeout = setTimeout(() => {
@@ -87,7 +89,7 @@ export function fightFrame() {
         }, 30000); // 60 seconds
     }
 
-// Spawn homing attacks
+    // Spawn homing attacks
     if (!homingTimeout && phase > 0) {
         createHoming();
         if (phase === 1) {
