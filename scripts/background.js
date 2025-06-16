@@ -1,8 +1,7 @@
 ﻿/* -------------------------- */
 /* ---------- SYNC ---------- */
 /* -------------------------- */
-
-let browser = require("webextension-polyfill");
+import "webextension-polyfill";
 
 browser.runtime.onMessage.addListener((request) => {
     if (request.action === "updateNikoPosition") {

@@ -34,7 +34,7 @@ function drawVignette(damage) {
     ctx.fillRect(0, 0, width, height);
 }
 
-function updateVignette(damage) {
+export function updateVignette(damage) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawVignette(damage);
 }
@@ -42,7 +42,7 @@ function updateVignette(damage) {
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
-function increaseDamage() {
+export function increaseDamage() {
     damage += 5;
     if (damage >= maxHp) {
         createGlitchElementsEnd()
@@ -53,7 +53,7 @@ function increaseDamage() {
     updateHpBarPlayer();
 }
 
-function decreaseDamage() {
+export function decreaseDamage() {
     damage -= 15;
     if (damage <= 0) {
         damage = 0
@@ -62,7 +62,7 @@ function decreaseDamage() {
     updateHpBarPlayer();
 }
 
-function attackNiko() {
+export function attackNiko() {
     nikoDamage += 5;
     let currentHp = nikoMaxHp - nikoDamage;
 
@@ -83,7 +83,7 @@ function attackNiko() {
     updateHpBarNiko();
 }
 
-function createHpBarPlayer() {
+export function createHpBarPlayer() {
     hpBarPlayer = document.createElement('div');
     hpBarPlayer.style.position = 'fixed';
     hpBarPlayer.style.top = '10%';
@@ -119,7 +119,7 @@ function updateHpBarPlayer() {
     innerBarPlayer.style.background = `linear-gradient(to right, green ${width}, red ${width})`;
 }
 
-function createHpBarNiko() {
+export function createHpBarNiko() {
     hpBarNiko = document.createElement('div');
     hpBarNiko.style.position = 'fixed';
     hpBarNiko.style.top = '90%';
@@ -165,7 +165,7 @@ function updateHpBarNiko() {
 // Spam with glitches
 function createGlitchElementsEnd() {
     const count = 300
-    const elements = [];
+    //const elements = [];
 
     for (let i = 0; i < count; i++) {
         const div = document.createElement('div');
@@ -180,9 +180,9 @@ function createGlitchElementsEnd() {
         div.style.opacity = '1';
         div.style.backgroundColor = 'transparent';
         document.body.appendChild(div);
-        elements.push(div);
+        //elements.push(div);
     }
 }
 
 
-module.exports = { updateVignette, createHpBarPlayer, increaseDamage, decreaseDamage, attackNiko, createHpBarNiko };
+//module.exports = { updateVignette, createHpBarPlayer, increaseDamage, decreaseDamage, attackNiko, createHpBarNiko };

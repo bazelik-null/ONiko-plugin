@@ -19,7 +19,8 @@
       "js": [
         "lib/browser-polyfill.js",
         "scripts/content.js",
-        "scripts/viegnette.js"
+        "scripts/health.js",
+        "scripts/projectiles.js"
       ]
     }
   ],

@@ -1,8 +1,12 @@
-const path = require('path');
-const CopyPlugin = require('copy-webpack-plugin');
+import path from 'path';
+import CopyPlugin from 'copy-webpack-plugin';
+import {fileURLToPath} from 'url';
 
-module.exports = {
-    mode: 'development', // Use 'production' for production builds
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const configuration = {
+    mode: 'development',
     devtool: "cheap-module-source-map",
     entry: {
         background: path.join(__dirname, 'scripts', 'background.js'),
@@ -50,3 +54,5 @@ module.exports = {
         }),
     ]
 };
+
+export default configuration;

@@ -2,14 +2,27 @@
 /* ---------- ONIKO MAIN ---------- */
 /* -------------------------------- */
 
-const { warnLine, createSquare, createHeal, createGlitchElements, createHoming } = require('./projectiles.js');
-const { updateVignette, createHpBarPlayer, attackNiko, createHpBarNiko } = require('./health.js');
+import { warnLine, createSquare, createHeal, createGlitchElements, createHoming } from "./projectiles.js";
+import { updateVignette, createHpBarPlayer, attackNiko, createHpBarNiko } from './health.js';
 
 // Create the Niko element.
 const nikoElement = document.createElement("div");
 
 // Declare variables for Niko's position and state.
-let nikoPosX, nikoPosY, mousePosX, mousePosY, isSleeping, nikoSpeed, sleepFrameSpeed, idleTime, character, removalTimeout, lineTimeout, squareTimeout, healTimeout, homingTimeout;
+let nikoPosX,
+	nikoPosY,
+	mousePosX,
+	mousePosY,
+	isSleeping,
+	nikoSpeed,
+	sleepFrameSpeed,
+	idleTime,
+	character,
+	removalTimeout,
+	lineTimeout,
+	squareTimeout,
+	healTimeout,
+	homingTimeout;
 
 let isFight = false;
 let isBlocked = false;
@@ -75,7 +88,7 @@ let nikoWalk, nikoSleep;
 /* ------------------------------------- */
 
 // Update the sprite based on the given frame count.
-function setSprite(name, frame, state) {
+function setSprite(name: String, frame, state) {
 	if (state == "walk") {
 		spriteSet = spriteWalk;
 		width = spriteWalk.width;

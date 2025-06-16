@@ -1,10 +1,10 @@
-const { increaseDamage, decreaseDamage } = require('./health.js');
+import { increaseDamage, decreaseDamage} from "./health.js";
 
 const homingSpeed = 5;
 let mousePosX = 0;
 let mousePosY = 0;
 
-function createGlitchElements() {
+export function createGlitchElements() {
 	const count = 3
 	const elements = [];
 
@@ -32,7 +32,7 @@ function createGlitchElements() {
 	}, 1000);
 }
 
-function createLine(warn) {
+export function createLine(warn) {
 	const line = document.createElement("div");
 	line.style.position = "absolute";
 	line.style.zIndex = 1000;
@@ -64,7 +64,7 @@ function createLine(warn) {
 	}, 1000);
 }
 
-function warnLine() {
+export function warnLine() {
 	const warn = document.createElement("div");
 	warn.style.position = "absolute";
 	warn.style.zIndex = 1000;
@@ -89,7 +89,7 @@ function warnLine() {
 	}, 1000);
 }
 
-function createSquare() {
+export function createSquare() {
 	const square = document.createElement("div");
 	square.style.position = "absolute";
 	square.style.zIndex = 1000;
@@ -136,7 +136,7 @@ document.addEventListener("mousemove", (event) => {
 	mousePosY = event.clientY;
 });
 
-function createHoming() {
+export function createHoming() {
 	const homing = document.createElement("div");
 	homing.style.position = "absolute";
 	homing.style.zIndex = 1000;
@@ -188,7 +188,7 @@ function createHoming() {
 	}, 5000);
 }
 
-function createHeal() {
+export function createHeal() {
 	const heal = document.createElement("div");
 	heal.style.position = "absolute";
 	heal.style.zIndex = 1000;
@@ -227,5 +227,3 @@ function createHeal() {
 		heal.remove();
 	});
 }
-
-module.exports = { warnLine, createSquare, createHeal, createGlitchElements, createHoming };
