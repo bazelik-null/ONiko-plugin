@@ -6,10 +6,10 @@ module.exports = {
     devtool: "cheap-module-source-map",
     entry: {
         background: path.join(__dirname, 'scripts', 'background.js'),
-        options: path.join(__dirname , 'scripts', 'options.js'),
+        options: path.join(__dirname, 'scripts', 'options.js'),
         content: path.join(__dirname, 'scripts', 'content.js'),
-        fight: path.join(__dirname, 'scripts', 'fight.js'),
-        hp: path.join(__dirname, 'scripts', 'hp.js')
+        projectiles: path.join(__dirname, 'scripts', 'projectiles.js'),
+        health: path.join(__dirname, 'scripts', 'health.js')
     },
     output: {
         path: path.join(__dirname, 'dist'),
@@ -45,7 +45,7 @@ module.exports = {
             patterns: [
                 { from: 'static', to: '' }, // Copy all assets and the manifest.json from 'static' to 'dist'
                 { from: 'manifest.json', to: '' },
-                { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'lib'}
+                { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'lib' }
             ],
         }),
     ]

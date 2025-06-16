@@ -12,6 +12,11 @@ let maxHp = 100;
 let nikoDamage = 0;
 let nikoMaxHp = 200;
 
+let hpBarPlayer
+let innerBarPlayer
+let hpBarNiko
+let innerBarNiko
+
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -70,8 +75,7 @@ function attackNiko() {
 
     if (currentHp <= nikoMaxHp / 3) {
         window.startPhase3();
-        isPhase2Blocked = true;
-    } 
+    }
     else if (currentHp <= nikoMaxHp * 2 / 3) {
         window.startPhase2();
     }
@@ -108,9 +112,9 @@ function createHpBarPlayer() {
 
 function updateHpBarPlayer() {
     let currentHp = maxHp - damage;
-    
+
     if (currentHp < 0) currentHp = 0;
-    
+
     let width = (currentHp / maxHp) * 100 + '%';
     innerBarPlayer.style.background = `linear-gradient(to right, green ${width}, red ${width})`;
 }
@@ -145,13 +149,13 @@ function createHpBarNiko() {
 
 function updateHpBarNiko() {
     let currentHp = nikoMaxHp - nikoDamage;
-    
+
     if (currentHp < 0) currentHp = 0;
-    
+
     let width = (currentHp / nikoMaxHp) * 100 + '%';
     if (currentHp <= nikoMaxHp / 3) {
-        innerBarNiko.style.background = `linear-gradient(to right,rgb(248, 104, 61) ${width}, red ${width})`;
-    } else if (currentHp <= nikoMaxHp * 2 / 3 && !isPhase2Blocked) {
+        innerBarNiko.style.background = `linear-gradient(to right,rgb(255, 81, 0) ${width}, red ${width})`;
+    } else if (currentHp <= nikoMaxHp * 2 / 3) {
         innerBarNiko.style.background = `linear-gradient(to right, yellow ${width}, red ${width})`;
     } else {
         innerBarNiko.style.background = `linear-gradient(to right, green ${width}, red ${width})`;
@@ -160,24 +164,24 @@ function updateHpBarNiko() {
 
 // Spam with glitches
 function createGlitchElementsEnd() {
-  const count = 300
-  const elements = [];
+    const count = 300
+    const elements = [];
 
-  for (let i = 0; i < count; i++) {
-      const div = document.createElement('div');
-      div.style.width = '128px'; 
-      div.style.height = '128px'; 
-      div.style.backgroundImage = `url(${browser.runtime.getURL("img/glitch.png")})`; 
-      div.style.backgroundSize = 'cover'; 
-      div.style.position = 'absolute'; 
-      div.style.top = `${Math.random() * 100}vh`;
-      div.style.left = `${Math.random() * 100}vw`;
-      div.style.zIndex = '9999'; 
-      div.style.opacity = '1'; 
-      div.style.backgroundColor = 'transparent'; 
-      document.body.appendChild(div);
-      elements.push(div);
-  }
+    for (let i = 0; i < count; i++) {
+        const div = document.createElement('div');
+        div.style.width = '128px';
+        div.style.height = '128px';
+        div.style.backgroundImage = `url(${browser.runtime.getURL("img/glitch.png")})`;
+        div.style.backgroundSize = 'cover';
+        div.style.position = 'absolute';
+        div.style.top = `${Math.random() * 100}vh`;
+        div.style.left = `${Math.random() * 100}vw`;
+        div.style.zIndex = '9999';
+        div.style.opacity = '1';
+        div.style.backgroundColor = 'transparent';
+        document.body.appendChild(div);
+        elements.push(div);
+    }
 }
 
 
