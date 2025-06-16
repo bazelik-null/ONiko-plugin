@@ -1,4 +1,4 @@
-import {attackNiko, updateVignette, phase} from './health.js'
+import {attackNiko, updateVignette, phase, isDead} from './health.js'
 import {setSprite, updateNikoPosition, direction, nikoPosX, nikoPosY, mousePosX, mousePosY, width, height} from './content.js'
 import {createWarnLine, createSquare, createHeal, createGlitchElements, createHoming, checkLineCollision, checkHomingCollision} from "./projectiles.js";
 
@@ -47,6 +47,9 @@ export function fightFrame() {
 
     checkLineCollision()
     checkHomingCollision()
+
+    if (isDead)
+        return
 
     // Spawn line attacks
     if (!lineTimeout) {

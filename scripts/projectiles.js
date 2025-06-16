@@ -109,7 +109,7 @@ export function checkLineCollision() {
                     createGlitchElements()
                     damageTimeout = setTimeout(() => {
                         damageTimeout = null;
-                    }, 300);
+                    }, 50);
                 }
                 break
             }
@@ -120,7 +120,7 @@ export function checkLineCollision() {
                     createGlitchElements()
                     damageTimeout = setTimeout(() => {
                         damageTimeout = null;
-                    }, 300);
+                    }, 50);
                 }
                 break
             }
@@ -237,7 +237,7 @@ export function checkHomingCollision() {
             createGlitchElements();
             damageTimeout = setTimeout(() => {
                 damageTimeout = null;
-            }, 300);
+            }, 50);
         }
     }
 }
