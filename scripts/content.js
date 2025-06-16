@@ -2,8 +2,8 @@
 /* ---------- ONIKO MAIN ---------- */
 /* -------------------------------- */
 
-const { warnLine, createSquare, createHeal, createGlitchElements, createHoming } = require('./fight.js');
-const { updateVignette, createHpBarPlayer, attackNiko, createHpBarNiko } = require('./hp.js');
+const { warnLine, createSquare, createHeal, createGlitchElements, createHoming } = require('./projectiles.js');
+const { updateVignette, createHpBarPlayer, attackNiko, createHpBarNiko } = require('./health.js');
 
 // Create the Niko element.
 const nikoElement = document.createElement("div");
@@ -235,7 +235,7 @@ function frame() {
   }
 
   // Spawn heals
-  if (!healTimeout && isFight && !isPhase3) {
+  if (!healTimeout && isFight) {
     createHeal();
     healTimeout = setTimeout(() => {
       healTimeout = null;

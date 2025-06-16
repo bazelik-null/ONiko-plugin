@@ -1,4 +1,4 @@
-const { increaseDamage, decreaseDamage } = require('./hp.js');
+const { increaseDamage, decreaseDamage } = require('./health.js');
 
 const homingSpeed = 5;
 let mousePosX = 0;

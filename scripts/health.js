@@ -1,5 +1,4 @@
 let isDied = false;
-let isPhase2Blocked = false;
 const canvas = document.createElement('canvas');
 const ctx = canvas.getContext('2d');
 document.body.appendChild(canvas);
@@ -40,7 +39,6 @@ window.addEventListener('resize', resizeCanvas);
 
 function increaseDamage() {
     damage += 5;
-    nikoDamage -= 1;
     if (damage >= maxHp) {
         createGlitchElementsEnd()
         damage = maxHp
@@ -48,7 +46,6 @@ function increaseDamage() {
     }
     updateVignette(damage)
     updateHpBarPlayer();
-    updateHpBarNiko();
 }
 
 function decreaseDamage() {
@@ -71,14 +68,14 @@ function attackNiko() {
         }
     }
 
-    if (currentHp <= nikoMaxHp * 2 / 3 && !isPhase2Blocked) {
-        window.startPhase2();
-    }
-
     if (currentHp <= nikoMaxHp / 3) {
         window.startPhase3();
         isPhase2Blocked = true;
+    } 
+    else if (currentHp <= nikoMaxHp * 2 / 3) {
+        window.startPhase2();
     }
+
     updateHpBarNiko();
 }
 
