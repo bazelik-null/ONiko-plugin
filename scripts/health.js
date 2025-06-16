@@ -1,7 +1,7 @@
 import {createGlitchElements} from './projectiles.js';
 import {win} from "./fight.js"
 
-let isDied = false;
+export let isDead = false;
 export let phase = 0;
 
 const canvas = document.createElement('canvas');
@@ -50,10 +50,10 @@ window.addEventListener('resize', resizeCanvas);
 
 export function increaseDamage() {
     damage += 5;
-    if (damage >= maxHp && !isDied) {
+    if (damage >= maxHp && !isDead) {
         createGlitchSpam()
         damage = maxHp
-        isDied = true
+        isDead = true
     }
     updateVignette(damage)
     updateHpBarPlayer();
@@ -74,7 +74,7 @@ export function attackNiko() {
 
     if (nikoDamage >= nikoMaxHp) {
         nikoDamage = nikoMaxHp
-        if (!isDied) {
+        if (!isDead) {
             win()
         }
     }

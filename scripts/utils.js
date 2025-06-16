@@ -7,8 +7,9 @@ export class LineData {
 }
 
 export class HomingData {
-    constructor(x, y) {
+    constructor(x, y, homing) {
         this.x = x;
         this.y = y;
+        this.homing = homing;
     }
 }

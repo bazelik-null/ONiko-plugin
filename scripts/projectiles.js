@@ -1,5 +1,6 @@
-import {increaseDamage, decreaseDamage} from "./health.js";
+import {increaseDamage, decreaseDamage, attackNiko} from "./health.js";
 import {LineData, HomingData} from "./utils.js";
+import {isDead} from "./health.js";
 
 const homingSpeed = 5;
 let mousePosX = 0;
@@ -8,7 +9,11 @@ let mousePosY = 0;
 let homingArray: Array<HomingData> = [];
 let linesArray: Array<LineData> = [];
 
+let damageTimeout
+
 export function createGlitchElements(isPermanent: Boolean = false) {
+    if (isDead) return;
+
     const count = 3
     const elements = [];
 
@@ -85,17 +90,42 @@ export function createLine(warn, lineData: LineData) {
 
     linesArray.push(lineData);
 
-    // Do damage if mouse touches attack
-    line.addEventListener("mouseover", () => {
-        increaseDamage();
-        createGlitchElements();
-    });
-
     // Delete line after 2 seconds
     setTimeout(() => {
         line.remove();
         linesArray.splice(0, 1);
     }, 1000);
+}
+
+export function checkLineCollision() {
+    if (damageTimeout) return
+
+    for (const i in linesArray) {
+        switch (linesArray[i].isHorizontal) {
+            case true: {
+                const distance = Math.abs(linesArray[i].y - mousePosY);
+                if (distance < 25) {
+                    increaseDamage()
+                    createGlitchElements()
+                    damageTimeout = setTimeout(() => {
+                        damageTimeout = null;
+                    }, 300);
+                }
+                break
+            }
+            case false: {
+                const distance = Math.abs(linesArray[i].x - mousePosX);
+                if (distance < 25) {
+                    increaseDamage()
+                    createGlitchElements()
+                    damageTimeout = setTimeout(() => {
+                        damageTimeout = null;
+                    }, 300);
+                }
+                break
+            }
+        }
+    }
 }
 
 export function createSquare() {
@@ -163,7 +193,7 @@ export function createHoming() {
     homing.style.top = `${homingPosY}px`;
     homing.style.left = `${homingPosX}px`;
 
-    const homingData = new HomingData(homingPosX, homingPosY)
+    const homingData = new HomingData(homingPosX, homingPosY, homing)
     homingArray.push(homingData)
 
     function moveHoming() {
@@ -185,14 +215,8 @@ export function createHoming() {
             homing.style.left = `${homingPosX}px`;
         }
 
-        if (Math.abs(homingPosX - mousePosX) < 30 && Math.abs(homingPosY - mousePosY) < 30) {
-            increaseDamage();
-            homing.remove();
-            homingArray.splice(homingArray.indexOf(homingData), 1);
-            createGlitchElements();
-        } else {
-            requestAnimationFrame(moveHoming);
-        }
+        requestAnimationFrame(moveHoming);
+
     }
 
     moveHoming();
@@ -201,6 +225,21 @@ export function createHoming() {
     setTimeout(() => {
         homing.remove();
     }, 5000);
+}
+
+export function checkHomingCollision() {
+    if (damageTimeout) return
+    for (let i in homingArray) {
+        if (Math.abs(homingArray[i].x - mousePosX) < 30 && Math.abs(homingArray[i].y - mousePosY) < 30) {
+            increaseDamage();
+            homingArray[i].homing.remove();
+            homingArray.splice(i, 1);
+            createGlitchElements();
+            damageTimeout = setTimeout(() => {
+                damageTimeout = null;
+            }, 300);
+        }
+    }
 }
 
 export function createHeal() {

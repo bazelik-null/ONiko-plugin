@@ -1,6 +1,6 @@
 import {attackNiko, updateVignette, phase} from './health.js'
 import {setSprite, updateNikoPosition, direction, nikoPosX, nikoPosY, mousePosX, mousePosY, width, height} from './content.js'
-import {createWarnLine, createSquare, createHeal, createGlitchElements, createHoming} from "./projectiles.js";
+import {createWarnLine, createSquare, createHeal, createGlitchElements, createHoming, checkLineCollision, checkHomingCollision} from "./projectiles.js";
 
 let removalTimeout, lineTimeout, squareTimeout, healTimeout, homingTimeout;
 export let isFight = false;
@@ -41,10 +41,12 @@ export function fightFrame() {
         }
     }
 
-
     // Constrain Niko within the window boundaries.
     window.setNikoPosX(Math.min(Math.max(16, nikoPosX), window.innerWidth - 16));
     window.setNikoPosY(Math.min(Math.max(16, nikoPosY), window.innerHeight - 16));
+
+    checkLineCollision()
+    checkHomingCollision()
 
     // Spawn line attacks
     if (!lineTimeout) {
