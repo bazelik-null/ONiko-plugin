@@ -1,13 +1,20 @@
-const path = require('path');
-const CopyPlugin = require('copy-webpack-plugin');
+import path from 'path';
+import CopyPlugin from 'copy-webpack-plugin';
+import {fileURLToPath} from 'url';
 
-module.exports = {
-    mode: 'development', // Use 'production' for production builds
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const configuration = {
+    mode: 'development',
     devtool: "cheap-module-source-map",
     entry: {
         background: path.join(__dirname, 'scripts', 'background.js'),
-        options: path.join(__dirname , 'scripts', 'options.js'),
+        options: path.join(__dirname, 'scripts', 'options.js'),
         content: path.join(__dirname, 'scripts', 'content.js'),
+        projectiles: path.join(__dirname, 'scripts', 'projectiles.js'),
+        health: path.join(__dirname, 'scripts', 'health.js'),
+        utils: path.join(__dirname, 'scripts', 'utils.js')
     },
     output: {
         path: path.join(__dirname, 'dist'),
@@ -43,8 +50,10 @@ module.exports = {
             patterns: [
                 { from: 'static', to: '' }, // Copy all assets and the manifest.json from 'static' to 'dist'
                 { from: 'manifest.json', to: '' },
-                { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'lib'}
+                { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'lib' }
             ],
         }),
     ]
 };
+
+export default configuration;
