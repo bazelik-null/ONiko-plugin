@@ -5,11 +5,3 @@ export class LineData {
         this.y = y;
     }
 }
-
-export class HomingData {
-    constructor(x, y, homing) {
-        this.x = x;
-        this.y = y;
-        this.homing = homing;
-    }
-}

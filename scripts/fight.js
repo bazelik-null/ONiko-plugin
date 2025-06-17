@@ -1,8 +1,6 @@
-//@flow
-
-import { attackNiko, updateVignette, phase, isDead } from './health.js'
-import { setSprite, updateNikoPosition, direction, nikoPosX, nikoPosY, mousePosX, mousePosY, width, height } from './content.js'
-import { createWarnLine, createSquare, createHeal, createGlitchElements, createHoming, checkLineCollision, checkHomingCollision } from "./projectiles.js";
+import {attackNiko, updateVignette, phase, isDead} from './health.js'
+import {setSprite, updateNikoPosition, direction, nikoPosX, nikoPosY, mousePosX, mousePosY, width, height} from './content.js'
+import {createWarnLine, createSquare, createHeal, createGlitchElements, createHoming, checkLineCollision} from "./projectiles.js";
 
 let removalTimeout, lineTimeout, squareTimeout, healTimeout, homingTimeout;
 export let isFight = false;
@@ -47,8 +45,7 @@ export function fightFrame() {
     window.setNikoPosX(Math.min(Math.max(16, nikoPosX), window.innerWidth - 16));
     window.setNikoPosY(Math.min(Math.max(16, nikoPosY), window.innerHeight - 16));
 
-    checkLineCollision()
-    checkHomingCollision()
+    checkLineCollision();
 
     if (isDead)
         return

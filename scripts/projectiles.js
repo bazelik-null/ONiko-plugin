@@ -1,14 +1,10 @@
-//@flow
-
-import { increaseDamage, decreaseDamage, attackNiko } from "./health.js";
-import { LineData, HomingData } from "./utils.js";
-import { isDead } from "./health.js";
+import {increaseDamage, decreaseDamage, attackNiko} from "./health.js";
+import {LineData} from "./utils.js";
+import {isDead} from "./health.js";
+import {mousePosX, mousePosY} from "./content.js";
 
 const homingSpeed = 5;
-let mousePosX = 0;
-let mousePosY = 0;
 
-let homingArray: Array<HomingData> = [];
 let linesArray: Array<LineData> = [];
 
 let damageTimeout
@@ -171,12 +167,6 @@ export function createSquare() {
     });
 }
 
-// Обработчик движения мыши
-document.addEventListener("mousemove", (event) => {
-    mousePosX = event.clientX;
-    mousePosY = event.clientY;
-});
-
 export function createHoming() {
     const homing = document.createElement("div");
     homing.style.position = "absolute";
@@ -194,9 +184,6 @@ export function createHoming() {
 
     homing.style.top = `${homingPosY}px`;
     homing.style.left = `${homingPosX}px`;
-
-    const homingData = new HomingData(homingPosX, homingPosY, homing)
-    homingArray.push(homingData)
 
     function moveHoming() {
         const diffX = homingPosX - mousePosX;
@@ -217,8 +204,13 @@ export function createHoming() {
             homing.style.left = `${homingPosX}px`;
         }
 
-        requestAnimationFrame(moveHoming);
-
+        if (Math.abs(homingPosX - mousePosX) < 30 && Math.abs(homingPosY - mousePosY) < 30) {
+            increaseDamage();
+            homing.remove();
+            createGlitchElements();
+        } else {
+            requestAnimationFrame(moveHoming);
+        }
     }
 
     moveHoming();
@@ -227,21 +219,6 @@ export function createHoming() {
     setTimeout(() => {
         homing.remove();
     }, 5000);
-}
-
-export function checkHomingCollision() {
-    if (damageTimeout) return
-    for (let i in homingArray) {
-        if (Math.abs(homingArray[i].x - mousePosX) < 30 && Math.abs(homingArray[i].y - mousePosY) < 30) {
-            increaseDamage();
-            homingArray[i].homing.remove();
-            homingArray.splice(i, 1);
-            createGlitchElements();
-            damageTimeout = setTimeout(() => {
-                damageTimeout = null;
-            }, 50);
-        }
-    }
 }
 
 export function createHeal() {
