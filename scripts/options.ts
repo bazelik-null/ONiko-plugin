@@ -4,19 +4,22 @@
     /* --------------------------------------- */
 
     // Get the form elements by id
-    const optionsForm = document.getElementById('optionsForm');
-    const message = document.getElementById('message');
-    const nikoSpeedInput = document.getElementById('nikoSpeed');
-    const sleepFrameSpeedInput = document.getElementById('sleepFrameSpeed');
-    const idleTimeInput = document.getElementById('idleTime');
-    const nikoSpeedValue = document.getElementById('nikoSpeedValue');
-    const sleepFrameSpeedValue = document.getElementById('sleepFrameSpeedValue');
-    const resetButton = document.getElementById('resetButton');
+    const optionsForm = document.getElementById('optionsForm') as HTMLFormElement;
+    const message = document.getElementById('message') as HTMLDivElement;
+    const nikoSpeedInput = document.getElementById('nikoSpeed') as HTMLInputElement;
+    const sleepFrameSpeedInput = document.getElementById('sleepFrameSpeed') as HTMLInputElement;
+    const idleTimeInput = document.getElementById('idleTime') as HTMLInputElement;
+    const nikoSpeedValue = document.getElementById('nikoSpeedValue') as HTMLSpanElement;
+    const sleepFrameSpeedValue = document.getElementById('sleepFrameSpeedValue') as HTMLSpanElement;
+    const resetButton = document.getElementById('resetButton') as HTMLButtonElement;
 
     // Default option values
     const defaultOptions = {
-        nikoSpeed: 10, sleepFrameSpeed: 0.1, idleTime: 60000,  // 60 seconds
-        language: 'en', sprite: 'Niko'
+        nikoSpeed: 10,
+        sleepFrameSpeed: 0.1,
+        idleTime: 60000,  // 60 seconds
+        language: 'en',
+        sprite: 'Niko'
     };
 
     function updateDisplay() {
@@ -26,18 +29,18 @@
 
     // Load current settings
     browser.storage.local.get(["nikoSpeed", "sleepFrameSpeed", "idleTime", "language", "sprite"]).then(options => {
-        nikoSpeedInput.value = options.nikoSpeed || defaultOptions.nikoSpeed;
-        sleepFrameSpeedInput.value = options.sleepFrameSpeed || defaultOptions.sleepFrameSpeed;
-        idleTimeInput.value = Math.floor((options.idleTime || defaultOptions.idleTime) / 1000);
+        nikoSpeedInput.value = options.nikoSpeed || defaultOptions.nikoSpeed.toString();
+        sleepFrameSpeedInput.value = options.sleepFrameSpeed || defaultOptions.sleepFrameSpeed.toString();
+        idleTimeInput.value = Math.floor((options.idleTime || defaultOptions.idleTime) / 1000).toString();
         updateDisplay();
 
         // Set the language from storage if available, otherwise use default ("en")
         const savedLanguage = options.language || 'en';
-        document.getElementById("languageSelect").value = savedLanguage;
+        (document.getElementById("languageSelect") as HTMLSelectElement).value = savedLanguage;
         setLanguage(savedLanguage);
 
         // Set the sprite from storage if available, otherwise use default ("Niko")
-        document.getElementById("spriteSelect").value = options.sprite || 'Niko';
+        (document.getElementById("spriteSelect") as HTMLSelectElement).value = options.sprite || 'Niko';
     });
 
     // Update displayed slider values
@@ -46,9 +49,9 @@
 
     // Reset settings
     resetButton.addEventListener('click', () => {
-        nikoSpeedInput.value = defaultOptions.nikoSpeed;
-        sleepFrameSpeedInput.value = defaultOptions.sleepFrameSpeed;
-        idleTimeInput.value = Math.floor(defaultOptions.idleTime / 1000);
+        nikoSpeedInput.value = defaultOptions.nikoSpeed.toString();
+        sleepFrameSpeedInput.value = defaultOptions.sleepFrameSpeed.toString();
+        idleTimeInput.value = Math.floor(defaultOptions.idleTime / 1000).toString();
         updateDisplay();
         // Save default settings
         browser.storage.local.set(defaultOptions).then(() => {
@@ -66,8 +69,8 @@
             nikoSpeed: parseInt(nikoSpeedInput.value, 10),
             sleepFrameSpeed: parseFloat(sleepFrameSpeedInput.value),
             idleTime: parseInt(idleTimeInput.value, 10) * 1000,
-            language: document.getElementById("languageSelect").value,
-            sprite: document.getElementById("spriteSelect").value
+            language: (document.getElementById("languageSelect") as HTMLSelectElement).value,
+            sprite: (document.getElementById("spriteSelect") as HTMLSelectElement).value
         };
         // Save to local storage
         browser.storage.local.set(options).then(() => {
@@ -83,7 +86,7 @@
     /* ---------------------------- */
 
     // Language translations for page elements
-    const translations = {
+    const translations: { [key: string]: any } = {
         en: {
             headerTitle: "Settings",
             nikoSpeedLabel: "Niko speed:",
@@ -98,7 +101,8 @@
             spriteSurvivor: "Survivor",
             spriteWatcher: "Watcher",
             languageLabel: "Choose language:"
-        }, ru: {
+        },
+        ru: {
             headerTitle: "Настройки",
             nikoSpeedLabel: "Скорость Нико:",
             sleepFrameSpeedLabel: "Скорость анимации сна:",
@@ -116,46 +120,45 @@
     };
 
     // Make sure that the language drop-down immediately applies the language change
-    document.getElementById("languageSelect").addEventListener("change", (e) => {
-        const selectedLanguage = e.target.value;
+    (document.getElementById("languageSelect") as HTMLSelectElement).addEventListener("change", (e) => {
+        const selectedLanguage = (e.target as HTMLSelectElement).value;
         setLanguage(selectedLanguage);
         // Save language to local storage
-        browser.storage.local.set({language: selectedLanguage}).then(() => {
+        browser.storage.local.set({ language: selectedLanguage }).then(() => {
             console.log("Language saved successfully.");
         }).catch(error => {
             console.error("Error saving language:", error);
             message.textContent = "Error saving language.";
-            message.textContent = "Error saving language.";
         });
     });
+
     // Function to change language
-    window.setLanguage = function (lang) {
+    function setLanguage(lang: string) {
         if (translations[lang]) {
             // Update page title text
-            document.getElementById("headerTitle").textContent = translations[lang].headerTitle;
+            (document.getElementById("headerTitle") as HTMLHeadingElement).textContent = translations[lang].headerTitle;
             // Update form labels
-            document.getElementById("nikoSpeedLabel").textContent = translations[lang].nikoSpeedLabel;
-            document.getElementById("sleepFrameSpeedLabel").textContent = translations[lang].sleepFrameSpeedLabel;
-            document.getElementById("idleTimeLabel").textContent = translations[lang].idleTimeLabel;
+            (document.getElementById("nikoSpeedLabel") as HTMLLabelElement).textContent = translations[lang].nikoSpeedLabel;
+            (document.getElementById("sleepFrameSpeedLabel") as HTMLLabelElement).textContent = translations[lang].sleepFrameSpeedLabel;
+            (document.getElementById("idleTimeLabel") as HTMLLabelElement).textContent = translations[lang].idleTimeLabel;
             // Update button texts
-            document.getElementById("saveButton").textContent = translations[lang].saveButton;
-            document.getElementById("resetButton").textContent = translations[lang].resetButton;
+            (document.getElementById("saveButton") as HTMLButtonElement).textContent = translations[lang].saveButton;
+            (document.getElementById("resetButton") as HTMLButtonElement).textContent = translations[lang].resetButton;
             // Update reload message
-            document.getElementById("reloadMsg").textContent = translations[lang].reloadMsg;
+            (document.getElementById("reloadMsg") as HTMLDivElement).textContent = translations[lang].reloadMsg;
             // Update language dropdown label text
-            document.querySelector('label[for="languageSelect"]').textContent = translations[lang].languageLabel;
+            document.querySelector('label[for="languageSelect"]')!.textContent = translations[lang].languageLabel;
 
             // Update sprite dropdown label text
-            document.querySelector('label[for="spriteSelect"]').textContent = translations[lang].spriteLabel;
-            const spriteSelect = document.getElementById("spriteSelect");
+            document.querySelector('label[for="spriteSelect"]')!.textContent = translations[lang].spriteLabel;
+            const spriteSelect = document.getElementById("spriteSelect") as HTMLSelectElement;
             spriteSelect.innerHTML = '';
-            const options = [{value: "Niko", text: translations[lang].spriteNiko}, {
-                value: "TWM",
-                text: translations[lang].spriteTWM
-            }, {value: "Survivor", text: translations[lang].spriteSurvivor}, {
-                value: "Watcher",
-                text: translations[lang].spriteWatcher
-            },];
+            const options = [
+                { value: "Niko", text: translations[lang].spriteNiko },
+                { value: "TWM", text: translations[lang].spriteTWM },
+                { value: "Survivor", text: translations[lang].spriteSurvivor },
+                { value: "Watcher", text: translations[lang].spriteWatcher },
+            ];
             options.forEach((option) => {
                 const opt = document.createElement("option");
                 opt.value = option.value;
@@ -173,3 +176,4 @@
     // Set default language (e.g., "en")
     setLanguage('en');
 });
+

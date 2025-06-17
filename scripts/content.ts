@@ -1,29 +1,43 @@
-﻿//@flow
-
-/* -------------------------------- */
+﻿/* -------------------------------- */
 /* ---------- ONIKO MAIN ---------- */
 /* -------------------------------- */
 
-import { updateVignette, createHpBarPlayer, createHpBarNiko } from './health.js';
-import { fightFrame, moveNikoRandom, isFight } from "./fight.js";
+import { updateVignette, createHpBarPlayer, createHpBarNiko } from './health';
+import { fightFrame, moveNikoRandom } from "./fight";
 
 const nikoElement = document.createElement("div");
 
-export let direction, nikoPosX, nikoPosY, isSleeping, mousePosX, mousePosY;
-export let isBlocked = false;
-export let width, height;
+export let direction: string
+export let nikoPosX: number;
+export let nikoPosY: number;
+export let mousePosX: number;
+export let mousePosY: number;
 
-let nikoSpeed, sleepFrameSpeed, idleTime, character;
-let frameCount = 0;
-let sleepFrameCount = 0;
-let sleepTimer;
-let spriteWalk, spriteSleep, spriteSet;
-let nikoWalk, nikoSleep;
+export let width: number;
+export let height: number;
+
+export let isBlocked = false;
+export let isSleeping: boolean;
 
 window.setNikoPosX = setNikoPosX
 window.setNikoPosY = setNikoPosY
 window.setNikoIsSleeping = setNikoIsSleeping
 window.setNikoIsBlocked = setNikoIsBlocked
+let isFight = window.isFight;
+
+let nikoSpeed: number;
+let sleepFrameSpeed: number;
+let idleTime: number;
+
+let frameCount = 0;
+let sleepFrameCount = 0;
+let lastFrameTimestamp: number;
+let sleepTimer: NodeJS.Timeout | null = null;
+
+let character: string;
+
+let spriteWalk: any, spriteSleep: any, spriteSet: any;
+let nikoWalk: string, nikoSleep: string;
 
 // Clean up Niko before the window unloads.
 window.addEventListener("beforeunload", function () {
@@ -32,8 +46,6 @@ window.addEventListener("beforeunload", function () {
         existingNiko.remove();
     }
 });
-
-init();
 
 browser.storage.local.get(["nikoPosX", "nikoPosY", "mousePosX", "mousePosY", "isSleeping", "sleepFrameSpeed", "nikoSpeed", "idleTime", "sprite"]).then((result) => {
     nikoPosX = result.nikoPosX || 32;
@@ -50,13 +62,15 @@ browser.storage.local.get(["nikoPosX", "nikoPosY", "mousePosX", "mousePosY", "is
     if (idleTime === 143000) {
         nikoSpeed = 10
         character = "TWM"
+        isFight = true;
         window.setFight(true)
         updateVignette(0);
         createHpBarPlayer();
         createHpBarNiko();
-        window.addEventListener('wheel', (event) => {
+        function stopWheelEvent(event: { preventDefault: () => void; }) {
             event.preventDefault();
-        }, { passive: false });
+        }
+        window.addEventListener('wheel', stopWheelEvent, { passive: false });
     }
 
     fetch(browser.runtime.getURL("img/" + character + "/meta.json"))
@@ -76,7 +90,7 @@ browser.storage.local.get(["nikoPosX", "nikoPosY", "mousePosX", "mousePosY", "is
 /* ------------------------------------- */
 
 // Update the sprite based on the given frame count.
-export function setSprite(name: String, frame, state) {
+export function setSprite(name: string, frame: number, state: string) {
     if (state === "walk") {
         spriteSet = spriteWalk;
         width = spriteWalk.width || 48;
@@ -99,9 +113,9 @@ export function setSprite(name: String, frame, state) {
     }
 }
 
+
 /* -------------------------------- */
 /* ---------- INIT ONIKO ---------- */
-
 /* -------------------------------- */
 
 function init() {
@@ -111,11 +125,11 @@ function init() {
     }
 
     nikoElement.id = "oniko";
-    nikoElement.ariaHidden = true;
+    nikoElement.ariaHidden = true ? "true" : "false";
     nikoElement.style.position = "fixed";
     nikoElement.style.pointerEvents = "none";
     nikoElement.style.imageRendering = "pixelated";
-    nikoElement.style.zIndex = 2147483647;
+    nikoElement.style.zIndex = (2147483647).toString();
 
     nikoElement.style.setProperty("margin", "0px", "important");
     nikoElement.style.setProperty("padding", "0px", "important");
@@ -150,9 +164,10 @@ function init() {
     });
 }
 
+init();
+
 /* ------------------------------- */
 /* ---------- ANIMATION ---------- */
-
 /* ------------------------------- */
 
 function setNikoPosX(value: number) {
@@ -218,10 +233,8 @@ function frame() {
     updateNikoPosition();
 }
 
-let lastFrameTimestamp;
-
 // Primary animation loop.
-function onAnimationFrame(timestamp) {
+function onAnimationFrame(timestamp: number) {
     if (!nikoElement.isConnected) return;
     if (document.hidden) return;
     frameCount += 1
@@ -238,12 +251,15 @@ function onAnimationFrame(timestamp) {
     window.requestAnimationFrame(onAnimationFrame);
 }
 
-function resetSleepTimer(isBlocked) {
+function resetSleepTimer(isBlocked: boolean) {
     if (isBlocked) {
         return;
     }
 
-    clearTimeout(sleepTimer);
+    if (sleepTimer !== null) {
+        clearTimeout(sleepTimer);
+    }
+
     sleepTimer = null;
     if (isSleeping) {
         isSleeping = false;
@@ -253,7 +269,6 @@ function resetSleepTimer(isBlocked) {
 
 /* -------------------------- */
 /* ---------- SYNC ---------- */
-
 /* -------------------------- */
 
 export function updateNikoPosition() {
@@ -288,4 +303,3 @@ window.addEventListener("visibilitychange", function () {
         });
     }
 });
-

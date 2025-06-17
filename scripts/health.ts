@@ -1,11 +1,11 @@
-import {createGlitchElements} from './projectiles.js';
-import {win} from "./fight.js"
+import { createGlitchElements } from './projectiles';
+import { win } from "./fight"
 
-export let isDead = false;
-export let phase = 0;
+export let isDead = false
+export let phase = 0
 
-const canvas = document.createElement('canvas');
-const ctx = canvas.getContext('2d');
+const canvas = document.createElement('canvas') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
 document.body.appendChild(canvas);
 canvas.style.position = 'fixed';
@@ -13,22 +13,22 @@ canvas.style.top = '0';
 canvas.style.left = '0';
 canvas.style.pointerEvents = 'none';
 
-let damage = 0;
+let damage = 0
 let maxHp = 100;
 let nikoDamage = 0;
 let nikoMaxHp = 200;
 
-let hpBarPlayer
-let innerBarPlayer
-let hpBarNiko
-let innerBarNiko
+let hpBarPlayer: HTMLDivElement
+let innerBarPlayer: HTMLDivElement
+let hpBarNiko: HTMLDivElement
+let innerBarNiko: HTMLDivElement
 
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 }
 
-function drawVignette(damage) {
+function drawVignette(damage: number) {
     const width = canvas.width;
     const height = canvas.height;
 
@@ -40,7 +40,7 @@ function drawVignette(damage) {
     ctx.fillRect(0, 0, width, height);
 }
 
-export function updateVignette(damage) {
+export function updateVignette(damage: number) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawVignette(damage);
 }
