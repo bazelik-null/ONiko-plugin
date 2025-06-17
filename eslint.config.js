@@ -1,5 +1,4 @@
 import globals from "globals";
-import ftFlow from "eslint-plugin-ft-flow";
 import hermesEslint from "hermes-eslint";
 
 export default [
@@ -13,7 +12,13 @@ export default [
             },
         },
         plugins: {
-            ftFlow,
+            '@typescript-eslint': require('@typescript-eslint/eslint-plugin'),
+        },
+    },
+    {
+        files: ['**/*.ts'],
+        languageOptions: {
+            parser: '@typescript-eslint/parser',
         },
     },
 ];

@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "target": "es6",
+        "module": "esnext",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "lib": [
+            "DOM",
+            "ESNext"
+        ],
+    },
+    "include": [
+        "scripts/**/*"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}
