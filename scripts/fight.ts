@@ -1,6 +1,6 @@
 import { attackNiko, updateVignette, phase, isDead } from './health'
 import { setSprite, updateNikoPosition, direction, nikoPosX, nikoPosY, mousePosX, mousePosY, width, height } from './content'
-import { createWarnLine, createSquare, createHeal, createGlitchElements, createHoming, checkLineCollision, /* checkHomingCollision */ } from "./projectiles";
+import { createWarnLine, createSquare, createHeal, createGlitchElements, createHoming, checkLineCollision } from "./projectiles";
 
 let removalTimeout: NodeJS.Timeout | null = null;
 let lineTimeout: NodeJS.Timeout | null = null;
@@ -51,7 +51,6 @@ export function fightFrame() {
     window.setNikoPosY(Math.min(Math.max(16, nikoPosY), window.innerHeight - 16));
 
     checkLineCollision()
-    //    checkHomingCollision()
 
     if (isDead)
         return

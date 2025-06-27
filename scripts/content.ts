@@ -91,21 +91,21 @@ browser.storage.local.get(["nikoPosX", "nikoPosY", "mousePosX", "mousePosY", "is
 
 // Update the sprite based on the given frame count.
 export function setSprite(name: string, frame: number, state: string) {
-    if (state === "walk") {
+    if (state === "walk" && spriteWalk) {
         spriteSet = spriteWalk;
         width = spriteWalk.width || 48;
         height = spriteWalk.height || 64;
         nikoElement.style.backgroundImage = `url(${nikoWalk})`;
     }
 
-    if (state === "sleep") {
+    if (state === "sleep" && spriteSleep) {
         spriteSet = spriteSleep;
         width = spriteSleep.width;
         height = spriteSleep.height;
         nikoElement.style.backgroundImage = `url(${nikoSleep})`;
     }
 
-    if (name !== undefined) {
+    if (name !== undefined && spriteSet) {
         nikoElement.style.width = width + 'px';
         nikoElement.style.height = height + 'px';
         const sprite = spriteSet[name][frame % spriteSet[name].length];
@@ -125,7 +125,7 @@ function init() {
     }
 
     nikoElement.id = "oniko";
-    nikoElement.ariaHidden = true ? "true" : "false";
+    nikoElement.ariaHidden = "true";
     nikoElement.style.position = "fixed";
     nikoElement.style.pointerEvents = "none";
     nikoElement.style.imageRendering = "pixelated";

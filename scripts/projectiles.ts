@@ -1,4 +1,4 @@
-import { increaseDamage, decreaseDamage, attackNiko } from "./health";
+import { increaseDamage, decreaseDamage } from "./health";
 import { LineData } from "./utils";
 import { isDead } from "./health";
 
@@ -71,7 +71,7 @@ export function createWarnLine() {
 export function createLine(warn: HTMLDivElement, lineData: LineData) {
     const line = document.createElement("div");
     line.style.position = "absolute";
-    line.style.zIndex = (1000).toString();;
+    line.style.zIndex = (1000).toString();
     line.style.backgroundColor = "rgb(66, 0, 128)";
     line.style.width = "25px";
     line.style.height = "100vh";
@@ -130,7 +130,7 @@ export function checkLineCollision() {
 export function createSquare() {
     const square = document.createElement("div");
     square.style.position = "absolute";
-    square.style.zIndex = (1000).toString();;
+    square.style.zIndex = (1000).toString();
     square.style.backgroundColor = "rgb(66, 0, 128)";
     square.style.width = "20px";
     square.style.height = "20px";
@@ -231,7 +231,7 @@ export function createHoming() {
 export function createHeal() {
     const heal = document.createElement("div");
     heal.style.position = "absolute";
-    heal.style.zIndex = (1000).toString();;
+    heal.style.zIndex = (1000).toString();
     heal.style.backgroundColor = "green";
     heal.style.width = "20px";
     heal.style.height = "20px";
