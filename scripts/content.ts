@@ -158,9 +158,6 @@ function init() {
         mousePosX = event.clientX;
         mousePosY = event.clientY;
         resetSleepTimer(isBlocked);
-        if (!document.hidden) {
-            window.requestAnimationFrame(onAnimationFrame);
-        }
     });
 }
 
@@ -212,8 +209,6 @@ function frame() {
         direction = "E";
     }
 
-    setSprite(direction, frameCount, "walk");
-
     if (isSleeping) {
         setSprite(direction, Math.floor(sleepFrameCount), "sleep");
         sleepFrameCount += sleepFrameSpeed;
@@ -225,6 +220,7 @@ function frame() {
         setSprite(direction || "idle", 0, "walk");
         return;
     }
+
     setSprite(direction, frameCount, "walk");
 
     nikoPosX -= (diffX / distance) * nikoSpeed;
