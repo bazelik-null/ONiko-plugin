@@ -171,7 +171,7 @@
         } else {
             console.error("Translations for language " + lang + " are not available.");
         }
-    };
+    }
 
     // Set default language (e.g., "en")
     setLanguage('en');

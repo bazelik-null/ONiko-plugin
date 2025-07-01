@@ -55,7 +55,6 @@ const configuration = {
         new CopyPlugin({
             patterns: [
                 { from: 'static', to: '' }, // Copy all assets and the manifest.json from 'static' to 'dist'
-                { from: 'manifest.json', to: '' },
                 { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'lib' }
             ],
         }),

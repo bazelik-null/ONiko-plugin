@@ -1,9 +1,9 @@
 ﻿/* -------------------------- */
 /* ---------- SYNC ---------- */
 /* -------------------------- */
-import "webextension-polyfill";
+import browser from "webextension-polyfill";
 
-browser.runtime.onMessage.addListener((request) => {
+browser.runtime.onMessage.addListener((request: any) => {
     if (request.action === "updateNikoPosition") {
         // Update Niko's position in local storage
         const { nikoPosX, nikoPosY, mousePosX, mousePosY, isSleeping } = request;
