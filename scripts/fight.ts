@@ -9,6 +9,7 @@ let lineTimeout: NodeJS.Timeout | null = null;
 let squareTimeout: NodeJS.Timeout | null = null;
 let healTimeout: NodeJS.Timeout | null = null;
 let homingTimeout: NodeJS.Timeout | null = null;
+
 let isFight = false;
 
 window.isFight = isFight;
@@ -29,23 +30,27 @@ export function moveNikoRandom() {
 }
 
 export function fightFrame() {
-    const diffX = nikoPosX - (mousePosX || nikoPosX);
-    const diffY = nikoPosY - (mousePosY || nikoPosY);
-    const distance = Math.hypot(diffX, diffY);
+    if (!isFight) {
+        return;
+    }
 
     if (enemy.phase == null) {
         return;
     }
 
     if (enemy.isDead) {
-        win();
+        showResult(true);
         return;
     }
 
     if (player.isDead) {
-        lose();
+        showResult(false);
         return;
     }
+
+    const diffX = nikoPosX - (mousePosX || nikoPosX);
+    const diffY = nikoPosY - (mousePosY || nikoPosY);
+    const distance = Math.hypot(diffX, diffY);
 
     setSprite(direction || "idle", 0, "walk");
 
@@ -121,50 +126,46 @@ export function fightFrame() {
     updateNikoPosition();
 }
 
-function win() {
-    isFight = false;
-    window.setNikoIsSleeping(true)
-    window.setNikoIsBlocked(true)
+function createEndOverlay(message: string, accent: string, btnLabel: string) {
+    const backdrop = document.createElement('div');
+    backdrop.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);z-index:10000;';
+    const card = document.createElement('div');
+    card.style.cssText = 'min-width:320px;padding:22px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.5);text-align:center;color:#fff;'
+        + 'background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.5));border:1px solid rgba(255,255,255,0.06);';
+    const title = document.createElement('div');
+    title.textContent = message;
+    title.style.cssText = `font-size:38px;font-weight:800;margin-bottom:10px;color:${accent};`;
+    const subtitle = document.createElement('div');
+    subtitle.style.cssText = 'font-size:13px;opacity:.95;margin-bottom:18px;';
+    const btn = document.createElement('button');
+    btn.textContent = btnLabel;
+    btn.style.cssText = 'padding:10px 18px;border-radius:8px;border:none;cursor:pointer;font-weight:700;';
+    btn.onclick = () => location.reload();
 
-    let labelElement = document.createElement('div');
-    labelElement.style.position = 'fixed';
-    labelElement.style.top = '50%';
-    labelElement.style.left = '50%';
-    labelElement.style.transform = 'translateX(-50%)';
-    labelElement.style.fontSize = '100px';
-    labelElement.style.fontWeight = 'bold';
-    labelElement.style.zIndex = '1001';
-    labelElement.style.color = "green";
-    document.body.appendChild(labelElement);
+    card.appendChild(title);
+    card.appendChild(subtitle);
+    card.appendChild(btn);
+    backdrop.appendChild(card);
+    document.body.appendChild(backdrop);
 
-    labelElement.textContent = 'YOU WON!';
-
-    const options = {
-        idleTime: 60000
-    }
-    browser.storage.local.set(options)
-    window.removeEventListener('wheel', window.stopWheelEvent);
-    player.healer(player, player.healthCap)
-    vignette.updateVignette(player);
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') location.reload(); }
+    window.addEventListener('keydown', onKey);
 }
 
-function lose() {
+function showResult(isWin: boolean) {
     isFight = false;
-    window.setNikoIsSleeping(true)
-    window.setNikoIsBlocked(true)
+    window.setNikoIsSleeping(true);
+    window.setNikoIsBlocked(true);
+    window.removeEventListener('wheel', window.stopWheelEvent);
 
-    let labelElement = document.createElement('div');
-    labelElement.style.position = 'fixed';
-    labelElement.style.top = '50%';
-    labelElement.style.left = '50%';
-    labelElement.style.transform = 'translateX(-50%)';
-    labelElement.style.fontSize = '100px';
-    labelElement.style.fontWeight = 'bold';
-    labelElement.style.zIndex = '1003';
-    labelElement.style.color = "black";
-    document.body.appendChild(labelElement);
-
-    labelElement.textContent = 'YOU LOST.';
-
-    vignette.updateVignette(player);
+    if (isWin) {
+        const options = { idleTime: 60000 };
+        browser.storage.local.set(options);
+        player.healer(player, player.healthCap);
+        vignette.updateVignette(player);
+        createEndOverlay('YOU WON!', '#6aff7a', 'Continue');
+    } else {
+        vignette.updateVignette(player);
+        createEndOverlay('YOU LOST.', '#ff6b6b', 'Retry');
+    }
 }

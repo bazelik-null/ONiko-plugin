@@ -1,5 +1,10 @@
+import {healthBar} from "./health";
+
 export class Character {
-    hpBar: HTMLDivElement
+    name: string;
+
+    healthText: HTMLDivElement;
+    healthBar: HTMLDivElement
     innerBar: HTMLDivElement
 
     health: number;
@@ -28,8 +33,7 @@ export class Character {
             character.health = 0;
         }
 
-        let width = (character.health / character.healthCap) * 100 + '%';
-        character.innerBar.style.background = `linear-gradient(to right, green ${width}, red ${width})`;
+        healthBar.updateHealthBar(character);
 
         return
     }
@@ -50,6 +54,9 @@ export class Character {
         if (character.health > character.healthCap) {
             character.health = character.healthCap;
         }
+
+        healthBar.updateHealthBar(character);
+
         return
     }
 
@@ -69,7 +76,7 @@ export class Character {
     }
 
     /**
-     *
+     * @param name Name of the character
      * @param health Starting health
      * @param healthCap Maximum health
      * @param resistance Resistance to damage. <br>
@@ -78,10 +85,12 @@ export class Character {
      * @param phase Phase for enemy. <br>
      * ‎ ‎ Set value to null for players.
      */
-    constructor(health: number, healthCap: number, resistance: number, damage: number, phase: number | null) {
-        this.hpBar = document.createElement('div');
+    constructor(name: string, health: number, healthCap: number, resistance: number, damage: number, phase: number | null) {
+        this.healthText = document.createElement('div');
+        this.healthBar = document.createElement('div');
         this.innerBar = document.createElement('div');
 
+        this.name = name;
         this.health = health;
         this.healthCap = healthCap;
         this.resistance = resistance;
