@@ -1,6 +1,7 @@
-import { increaseDamage, decreaseDamage } from "./health";
+import {enemy, player, vignette} from "./health";
 import { LineData } from "./utils";
-import { isDead } from "./health";
+
+//TODO: Refactor this piece of shitcode. It's horrible
 
 const homingSpeed = 5;
 let mousePosX = 0;
@@ -11,7 +12,9 @@ let linesArray: Array<LineData> = [];
 let damageTimeout: NodeJS.Timeout | null = null;
 
 export function createGlitchElements(isPermanent: Boolean = false) {
-    if (isDead) return;
+    if (player.isDead || enemy.isDead) {
+        return;
+    }
 
     const count = 3
     const elements: Array<HTMLDivElement> = [];
@@ -61,7 +64,6 @@ export function createWarnLine() {
 
     const lineData = new LineData(isHorizontal, left, top);
 
-    // Create line after 1 second of waiting
     setTimeout(() => {
         createLine(warn, lineData);
         warn.remove();
@@ -89,7 +91,6 @@ export function createLine(warn: HTMLDivElement, lineData: LineData) {
 
     linesArray.push(lineData);
 
-    // Delete line after 2 seconds
     setTimeout(() => {
         line.remove();
         linesArray.splice(0, 1);
@@ -104,7 +105,8 @@ export function checkLineCollision() {
             case true: {
                 const distance = Math.abs(linesArray[i].y - mousePosY);
                 if (distance < 25) {
-                    increaseDamage()
+                    enemy.attacker(player, enemy, 0);
+                    vignette.updateVignette(player);
                     createGlitchElements()
                     damageTimeout = setTimeout(() => {
                         damageTimeout = null;
@@ -115,7 +117,8 @@ export function checkLineCollision() {
             case false: {
                 const distance = Math.abs(linesArray[i].x - mousePosX);
                 if (distance < 25) {
-                    increaseDamage()
+                    enemy.attacker(player, enemy, 0);
+                    vignette.updateVignette(player);
                     createGlitchElements()
                     damageTimeout = setTimeout(() => {
                         damageTimeout = null;
@@ -139,7 +142,6 @@ export function createSquare() {
 
     document.body.appendChild(square);
 
-    // Falling anim
     let positionY = 0;
     let positionX = Math.random() < 0.5 ? -5 : 5; // Random horizontal direction
 
@@ -158,17 +160,16 @@ export function createSquare() {
         if (parseFloat(square.style.left) < 0 || parseFloat(square.style.left) > window.innerWidth - 30) {
             positionX = -positionX;
         }
-    }, 50); // Update interval
+    }, 50);
 
-    // Do damage if mouse touches attack
     square.addEventListener("mouseover", () => {
-        increaseDamage();
+        enemy.attacker(player, enemy, 0);
+        vignette.updateVignette(player);
         createGlitchElements();
         square.remove();
     });
 }
 
-// Обработчик движения мыши
 document.addEventListener("mousemove", (event) => {
     mousePosX = event.clientX;
     mousePosY = event.clientY;
@@ -212,7 +213,8 @@ export function createHoming() {
         }
 
         if (Math.abs(homingPosX - mousePosX) < 30 && Math.abs(homingPosY - mousePosY) < 30) {
-            increaseDamage();
+            enemy.attacker(player, enemy, 0);
+            vignette.updateVignette(player);
             homing.remove();
             createGlitchElements();
         } else {
@@ -222,10 +224,9 @@ export function createHoming() {
 
     moveHoming();
 
-    // Удаляем треугольник через 5 секунд
     setTimeout(() => {
         homing.remove();
-    }, 5000);
+    }, 3000);
 }
 
 export function createHeal() {
@@ -240,7 +241,6 @@ export function createHeal() {
 
     document.body.appendChild(heal);
 
-    // Falling anim
     let positionY = 0;
     let positionX = Math.random() < 0.5 ? -5 : 5; // Random horizontal direction
 
@@ -259,11 +259,10 @@ export function createHeal() {
         if (parseFloat(heal.style.left) < 0 || parseFloat(heal.style.left) > window.innerWidth - 30) {
             positionX = -positionX;
         }
-    }, 50); // Update interval
+    }, 50);
 
-    // Do damage if mouse touches attack
     heal.addEventListener("mouseover", () => {
-        decreaseDamage();
+        player.healer(player, 15)
         heal.remove();
     });
 }

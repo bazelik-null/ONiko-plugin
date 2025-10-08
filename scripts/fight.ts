@@ -1,6 +1,8 @@
-import { attackNiko, updateVignette, phase, isDead } from './health'
+import { vignette, player, enemy } from './health'
 import { setSprite, updateNikoPosition, direction, nikoPosX, nikoPosY, mousePosX, mousePosY, width, height } from './content'
 import { createWarnLine, createSquare, createHeal, createGlitchElements, createHoming, checkLineCollision } from "./projectiles";
+
+//TODO: Better refactor this. Looks bad to me.
 
 let removalTimeout: NodeJS.Timeout | null = null;
 let lineTimeout: NodeJS.Timeout | null = null;
@@ -31,12 +33,26 @@ export function fightFrame() {
     const diffY = nikoPosY - (mousePosY || nikoPosY);
     const distance = Math.hypot(diffX, diffY);
 
+    if (enemy.phase == null) {
+        return;
+    }
+
+    if (enemy.isDead) {
+        win();
+        return;
+    }
+
+    if (player.isDead) {
+        lose();
+        return;
+    }
+
     setSprite(direction || "idle", 0, "walk");
 
     if (distance && (distance < width || distance < height)) {
-        // Niko attack
+        // Attack niko
         if (!removalTimeout) {
-            attackNiko();
+            player.attacker(enemy, player, 0)
             createGlitchElements();
             moveNikoRandom();
 
@@ -52,13 +68,10 @@ export function fightFrame() {
 
     checkLineCollision()
 
-    if (isDead)
-        return
-
     // Spawn line attacks
     if (!lineTimeout) {
         createWarnLine();
-        if (phase < 2) {
+        if (enemy.phase < 2) {
             lineTimeout = setTimeout(() => {
                 lineTimeout = null;
             }, 1000); // 1 second
@@ -70,9 +83,9 @@ export function fightFrame() {
     }
 
     // Spawn squares attacks
-    if (!squareTimeout && phase < 2) {
+    if (!squareTimeout && enemy.phase < 2) {
         createSquare();
-        if (phase === 0) {
+        if (enemy.phase === 0) {
             squareTimeout = setTimeout(() => {
                 squareTimeout = null;
             }, 75);
@@ -92,9 +105,9 @@ export function fightFrame() {
     }
 
     // Spawn homing attacks
-    if (!homingTimeout && phase > 0) {
+    if (!homingTimeout && enemy.phase > 0) {
         createHoming();
-        if (phase === 1) {
+        if (enemy.phase === 1) {
             homingTimeout = setTimeout(() => {
                 homingTimeout = null;
             }, 7000);
@@ -108,8 +121,11 @@ export function fightFrame() {
     updateNikoPosition();
 }
 
+function win() {
+    isFight = false;
+    window.setNikoIsSleeping(true)
+    window.setNikoIsBlocked(true)
 
-function createLabelWon() {
     let labelElement = document.createElement('div');
     labelElement.style.position = 'fixed';
     labelElement.style.top = '50%';
@@ -122,18 +138,33 @@ function createLabelWon() {
     document.body.appendChild(labelElement);
 
     labelElement.textContent = 'YOU WON!';
-}
 
-export function win() {
-    isFight = false;
-    window.setNikoIsSleeping(true)
-    window.setNikoIsBlocked(true)
-
-    createLabelWon()
     const options = {
         idleTime: 60000
     }
     browser.storage.local.set(options)
-    updateVignette(0);
     window.removeEventListener('wheel', window.stopWheelEvent);
+    player.healer(player, player.healthCap)
+    vignette.updateVignette(player);
+}
+
+function lose() {
+    isFight = false;
+    window.setNikoIsSleeping(true)
+    window.setNikoIsBlocked(true)
+
+    let labelElement = document.createElement('div');
+    labelElement.style.position = 'fixed';
+    labelElement.style.top = '50%';
+    labelElement.style.left = '50%';
+    labelElement.style.transform = 'translateX(-50%)';
+    labelElement.style.fontSize = '100px';
+    labelElement.style.fontWeight = 'bold';
+    labelElement.style.zIndex = '1003';
+    labelElement.style.color = "black";
+    document.body.appendChild(labelElement);
+
+    labelElement.textContent = 'YOU LOST.';
+
+    vignette.updateVignette(player);
 }

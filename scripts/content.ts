@@ -2,7 +2,7 @@
 /* ---------- ONIKO MAIN ---------- */
 /* -------------------------------- */
 
-import { updateVignette, createHpBarPlayer, createHpBarNiko } from './health';
+import {vignette, createHpBarPlayer, createHpBarNiko, player} from './health';
 import { fightFrame, moveNikoRandom } from "./fight";
 
 const nikoElement = document.createElement("div");
@@ -64,7 +64,7 @@ browser.storage.local.get(["nikoPosX", "nikoPosY", "mousePosX", "mousePosY", "is
         character = "TWM"
         isFight = true;
         window.setFight(true)
-        updateVignette(0);
+        vignette.updateVignette(player);
         createHpBarPlayer();
         createHpBarNiko();
         function stopWheelEvent(event: { preventDefault: () => void; }) {
