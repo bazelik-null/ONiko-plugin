@@ -1,5 +1,5 @@
 import { vignette, player, enemy } from './battleUI'
-import { setSprite, updateNikoPosition, direction, nikoPosX, nikoPosY, mousePosX, mousePosY } from './content'
+import {setSprite, updateNikoPosition, direction, nikoPosX, nikoPosY, mouse} from './content'
 import { effects, homingHazard, lineHazard, squareHazard } from "./projectiles";
 import { Character } from "./character";
 
@@ -61,8 +61,8 @@ export function fightFrame() {
     if (player.isDead) { showResult(false); return; }
 
     // Compute vector from Niko to mouse
-    const targetX = mousePosX ?? nikoPosX;
-    const targetY = mousePosY ?? nikoPosY;
+    const targetX = mouse.x ?? nikoPosX;
+    const targetY = mouse.y ?? nikoPosY;
     const dx = nikoPosX - targetX;
     const dy = nikoPosY - targetY;
     const distance = Math.hypot(dx, dy);

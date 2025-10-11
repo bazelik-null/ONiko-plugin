@@ -2,17 +2,15 @@
 /* ---------- ONIKO MAIN ---------- */
 /* -------------------------------- */
 
-import { vignette, player, initBattleUI } from './battleUI';
-import { fightFrame, moveNikoRandom } from "./fight";
-import { initHazards } from "./projectiles";
+import {initBattleUI, player, vignette} from './battleUI';
+import {fightFrame, moveNikoRandom} from "./fight";
+import {initHazards} from "./projectiles";
 
 const nikoElement = document.createElement("div");
 
 export let direction: string
 export let nikoPosX: number;
 export let nikoPosY: number;
-export let mousePosX: number;
-export let mousePosY: number;
 
 export let width: number;
 export let height: number;
@@ -41,6 +39,8 @@ let sprite: string;
 let spriteWalk: any, spriteSleep: any, spriteSet: any;
 let nikoWalk: string, nikoSleep: string;
 
+export let mouse: Mouse;
+
 // Clean up Niko before the window unloads.
 window.addEventListener("beforeunload", function () {
     const existingNiko = document.getElementById("oniko");
@@ -52,8 +52,8 @@ window.addEventListener("beforeunload", function () {
 browser.storage.local.get(["nikoPosX", "nikoPosY", "mousePosX", "mousePosY", "isSleeping", "sleepFrameSpeed", "nikoSpeed", "idleTime", "sprite", "movement"]).then((result) => {
     nikoPosX = result.nikoPosX || 32;
     nikoPosY = result.nikoPosY || 32;
-    mousePosX = result.mousePosX || 0;
-    mousePosY = result.mousePosY || 0;
+    mouse.x = result.mousePosX || 0;
+    mouse.y = result.mousePosY || 0;
     isSleeping = result.isSleeping || false;
     sleepFrameSpeed = result.sleepFrameSpeed || 0.1;
     nikoSpeed = result.nikoSpeed || 10;
@@ -88,6 +88,56 @@ browser.storage.local.get(["nikoPosX", "nikoPosY", "mousePosX", "mousePosY", "is
             nikoSleep = browser.runtime.getURL("img/" + data.nikoSleep);
         });
 });
+
+export class Mouse {
+    public x: number;
+    public y: number;
+
+    public calculateDiff() : [number, number] {
+        const diffX = nikoPosX - (this.x || nikoPosX);
+        const diffY = nikoPosY - (this.y || nikoPosY);
+
+        return [diffX, diffY];
+    }
+
+    public calculateDistance(diffArr: [number, number]) : number {
+        let diffX = diffArr[0]
+        let diffY = diffArr[1]
+
+        return Math.hypot(diffX, diffY);
+    }
+
+    public calculateVector(distance: number, diffArr: [number, number]) : [number, number] {
+        let diffX = diffArr[0]
+        let diffY = diffArr[1]
+
+        const normalizedX = diffX / distance;
+        const normalizedY = diffY / distance;
+
+        return [normalizedX, normalizedY];
+    }
+
+    public getDirection(normalizedArr: [number, number]) : string {
+        let normalizedX = normalizedArr[0];
+        let normalizedY = normalizedArr[1];
+
+        if (normalizedY > 0.5) {
+            direction = "N";
+        } else if (normalizedY < -0.5) {
+            direction = "S";
+        } else if (normalizedX > 0.5) {
+            direction = "W";
+        } else if (normalizedX < -0.5) {
+            direction = "E";
+        }
+        return direction;
+    }
+
+    constructor() {
+        this.x = 0;
+        this.y = 0;
+    }
+}
 
 /* ------------------------------------- */
 /* ---------- SPRITE HANDLING ---------- */
@@ -142,11 +192,13 @@ function init() {
 
     document.body.appendChild(nikoElement);
 
+    mouse = new Mouse();
+
     browser.storage.local.get(['nikoPosX', 'nikoPosY', 'mousePosX', 'mousePosY', 'isSleeping']).then((result) => {
         nikoPosX = result.nikoPosX || 32;
         nikoPosY = result.nikoPosY || 32;
-        mousePosX = result.mousePosX || undefined;
-        mousePosY = result.mousePosY || undefined;
+        mouse.x = result.mousePosX || undefined;
+        mouse.y = result.mousePosY || undefined;
         isSleeping = result.isSleeping || undefined;
     });
 
@@ -159,8 +211,8 @@ function init() {
     }
 
     document.addEventListener('mousemove', (event) => {
-        mousePosX = event.clientX;
-        mousePosY = event.clientY;
+        mouse.x = event.clientX;
+        mouse.y = event.clientY;
         resetSleepTimer(isBlocked);
     });
 }
@@ -188,29 +240,17 @@ function setNikoIsBlocked(value: boolean) {
 }
 
 function frame() {
-    const diffX = nikoPosX - (mousePosX || nikoPosX);
-    const diffY = nikoPosY - (mousePosY || nikoPosY);
-    const distance = Math.hypot(diffX, diffY);
+    let diffArr = mouse.calculateDiff()
+    let distance = mouse.calculateDistance(diffArr)
+    let normalizedArr = mouse.calculateVector(distance, diffArr);
+    let direction = mouse.getDirection(normalizedArr)
 
     // Start sleep timer if Niko is near the mouse and not already sleeping.
-    if (distance < 256 && !sleepTimer && !isSleeping) {
+    if (distance < 128 && !sleepTimer && !isSleeping) {
         sleepTimer = setTimeout(() => {
             isSleeping = true;
             sleepFrameCount = 0;
         }, idleTime);
-    }
-
-    const normalizedX = diffX / distance;
-    const normalizedY = diffY / distance;
-
-    if (normalizedY > 0.5) {
-        direction = "N";
-    } else if (normalizedY < -0.5) {
-        direction = "S";
-    } else if (normalizedX > 0.5) {
-        direction = "W";
-    } else if (normalizedX < -0.5) {
-        direction = "E";
     }
 
     if (isSleeping) {
@@ -220,9 +260,9 @@ function frame() {
     }
 
     if (movementType == "new") {
-        nikoMovement(distance, normalizedX, normalizedY, diffY, diffX);
+        nikoMovement(distance, normalizedArr, diffArr);
     } else if (movementType == "legacy") {
-        legacyNikoMovement(distance, normalizedX, normalizedY, diffY, diffX);
+        legacyNikoMovement(distance, normalizedArr, diffArr);
     }
 }
 
@@ -244,23 +284,19 @@ function onAnimationFrame(timestamp: number) {
     window.requestAnimationFrame(onAnimationFrame);
 }
 
-function nikoMovement(distance: number, normalizedX: number, normalizedY: number, diffY: number, diffX: number) {
-    // If niko is closer than 128 go further from mouse
-    if (distance < 128 || distance < 128) {
-        if (normalizedY > 0.5) {
-            direction = "N";
-        } else if (normalizedY < -0.5) {
-            direction = "S";
-        } else if (normalizedX > 0.5) {
-            direction = "W";
-        } else if (normalizedX < -0.5) {
-            direction = "E";
-        }
+function nikoMovement(distance: number, normalizedArr: [number, number], diffArr: [number, number]) {
+    let diffX = diffArr[0];
+    let diffY = diffArr[1];
+
+    let direction = mouse.getDirection(normalizedArr);
+
+    // If niko is closer than 64 go further from mouse
+    if (distance < 96) {
         nikoPosX += (diffX / distance) * nikoSpeed;
         nikoPosY += (diffY / distance) * nikoSpeed;
     }
-    // If niko is in position between 128 and 256 stand still
-    else if ((distance > 128 || distance > 128) && (distance < 256 || distance < 256)) {
+    // If niko is in position between 64 and 128 stand still
+    else if (distance > 64 && distance < 128) {
         setSprite(direction || "idle", 0, "walk");
         return;
     }
@@ -275,7 +311,12 @@ function nikoMovement(distance: number, normalizedX: number, normalizedY: number
     updateNikoPosition();
 }
 
-function legacyNikoMovement(distance: number, normalizedX: number, normalizedY: number, diffY: number, diffX: number) {
+function legacyNikoMovement(distance: number, normalizedArr: [number, number], diffArr: [number, number]) {
+    let diffX = diffArr[0];
+    let diffY = diffArr[1];
+
+    let direction = mouse.getDirection(normalizedArr);
+
     // Stop animation if Niko is close to the mouse.
     if (distance < width || distance < height) {
         setSprite(direction || "idle", 0, "walk");
@@ -313,6 +354,10 @@ function resetSleepTimer(isBlocked: boolean) {
 export function updateNikoPosition() {
     nikoElement.style.left = `${nikoPosX - 24}px`;
     nikoElement.style.top = `${nikoPosY - 32}px`;
+
+    let mousePosX = mouse.x;
+    let mousePosY = mouse.y;
+
     browser.runtime.sendMessage({
         action: "updateNikoPosition", nikoPosX, nikoPosY, mousePosX, mousePosY, isSleeping
     });
@@ -321,8 +366,8 @@ export function updateNikoPosition() {
 browser.runtime.onMessage.addListener(function (request) {
     nikoPosX = request.nikoPosX;
     nikoPosY = request.nikoPosY;
-    mousePosX = request.mousePosX;
-    mousePosY = request.mousePosY;
+    mouse.x = request.mousePosX;
+    mouse.y = request.mousePosY;
     isSleeping = request.isSleeping;
 });
 
@@ -333,8 +378,8 @@ window.addEventListener("visibilitychange", function () {
         browser.storage.local.get(['nikoPosX', 'nikoPosY', 'mousePosX', 'mousePosY', 'isSleeping']).then((result) => {
             nikoPosX = result.nikoPosX || nikoPosX;
             nikoPosY = result.nikoPosY || nikoPosY;
-            mousePosX = result.mousePosX || mousePosX;
-            mousePosY = result.mousePosY || mousePosY;
+            mouse.x = result.mousePosX || mouse.x;
+            mouse.y = result.mousePosY || mouse.y;
             isSleeping = result.isSleeping || isSleeping;
             // Restart the animation loop.
             resetSleepTimer(isBlocked);
