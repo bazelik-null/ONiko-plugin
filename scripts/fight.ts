@@ -1,5 +1,5 @@
 import { vignette, player, enemy } from './battleUI'
-import {setSprite, updateNikoPosition, direction, nikoPosX, nikoPosY, mouse} from './content'
+import {updateNikoPosition, mouse, oniko, setSprite} from './content'
 import { effects, homingHazard, lineHazard, squareHazard } from "./projectiles";
 import { Character } from "./character";
 
@@ -30,6 +30,8 @@ window.setFight = setFight;
 function setFight(value: boolean) {
     isFight = value;
 }
+
+//TODO: Fix this. Its not random anymore (wtf)
 export function moveNikoRandom() {
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
@@ -60,14 +62,10 @@ export function fightFrame() {
     if (enemy.isDead) { showResult(true); return; }
     if (player.isDead) { showResult(false); return; }
 
-    // Compute vector from Niko to mouse
-    const targetX = mouse.x ?? nikoPosX;
-    const targetY = mouse.y ?? nikoPosY;
-    const dx = nikoPosX - targetX;
-    const dy = nikoPosY - targetY;
-    const distance = Math.hypot(dx, dy);
+    let diffArr = mouse.calculateDiff()
+    let distance = mouse.calculateDistance(diffArr)
 
-    setSprite(direction || "idle", 0, "walk");
+    setSprite(oniko.direction || "idle", 0, "walk");
 
     const minScreen = Math.min(window.innerWidth, window.innerHeight);
     const attackThreshold = minScreen * FIGHT_CONFIG.ATTACK_DISTANCE_PADDING;
@@ -87,8 +85,8 @@ export function fightFrame() {
     }
 
     // Keep Niko inside screen
-    window.setNikoPosX(Math.min(Math.max(FIGHT_CONFIG.NIKO_MARGIN, nikoPosX), window.innerWidth - FIGHT_CONFIG.NIKO_MARGIN));
-    window.setNikoPosY(Math.min(Math.max(FIGHT_CONFIG.NIKO_MARGIN, nikoPosY), window.innerHeight - FIGHT_CONFIG.NIKO_MARGIN));
+    window.setNikoPosX(Math.min(Math.max(FIGHT_CONFIG.NIKO_MARGIN, oniko.x), window.innerWidth - FIGHT_CONFIG.NIKO_MARGIN));
+    window.setNikoPosY(Math.min(Math.max(FIGHT_CONFIG.NIKO_MARGIN, oniko.x), window.innerHeight - FIGHT_CONFIG.NIKO_MARGIN));
 
     lineHazard.checkLineCollision();
 

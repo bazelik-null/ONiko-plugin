@@ -17,6 +17,8 @@ const configuration = {
         battleUI: path.join(__dirname, 'scripts', 'battleUI.ts'),
         character: path.join(__dirname, 'scripts', 'character.ts'),
         fight: path.join(__dirname, 'scripts', 'fight.ts'),
+        mouse: path.join(__dirname, 'scripts', 'mouse.ts'),
+        oniko: path.join(__dirname, 'scripts', 'oniko.ts'),
     },
     output: {
         path: path.join(__dirname, 'dist'),
