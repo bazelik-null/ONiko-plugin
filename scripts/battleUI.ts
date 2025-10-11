@@ -1,16 +1,16 @@
-import {Character} from "./character";
+import { Character } from "./character";
 
 const canvas = document.createElement("canvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-const DEFAULT_BAR_WIDTH_PX = 260;   // default width of HP bar
-const DEFAULT_BAR_HEIGHT_PX = 26;   // default height of HP bar
-const DEFAULT_BORDER_RADIUS_PX = 6; // rounded corners
-const DEFAULT_TOP_OFFSET = "6%";    // percent from top for top-positioned bars
-const DEFAULT_BOTTOM_OFFSET = "6%"; // percent from bottom for bottom-positioned bars
-const DEFAULT_Z_INDEX = 1001;       // ensure bars sit above most UI
-const DEFAULT_TRANSITION_MS = 300;  // smooth width transitions for inner bar
-const MAX_VIGNETTE_HEALTH_CAP = 100; // scale vignette relative to this cap
+const DEFAULT_BAR_WIDTH_PX = 260;
+const DEFAULT_BAR_HEIGHT_PX = 26;
+const DEFAULT_BORDER_RADIUS_PX = 6;
+const DEFAULT_TOP_OFFSET = "6%";
+const DEFAULT_BOTTOM_OFFSET = "6%";
+const DEFAULT_Z_INDEX = 1001;
+const DEFAULT_TRANSITION_MS = 300;
+const MAX_VIGNETTE_HEALTH_CAP = 100;
 
 if (!document.body.contains(canvas)) {
     canvas.style.position = "fixed";
@@ -90,9 +90,9 @@ export class HealthBar {
         container.style.width = `${DEFAULT_BAR_WIDTH_PX}px`;
         container.style.height = `${DEFAULT_BAR_HEIGHT_PX}px`;
         container.style.border = "1px solid rgba(0,0,0,0.6)";
-        container.style.background = "rgba(0,0,0,0.35)"; // dark translucent base for contrast
+        container.style.background = "rgba(0,0,0,0.35)";
         container.style.mixBlendMode = "normal"; // avoid blending with page background
-        container.style.backdropFilter = "blur(4px)"; // soft blur so underlying content doesn't show through sharply
+        container.style.backdropFilter = "blur(4px)";
         container.style.border = "1px solid rgba(255,255,255,0.12)"; // light outline for dark pages
         container.style.boxShadow = "0 2px 8px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.03)"; // extra separation
         container.style.borderRadius = `${DEFAULT_BORDER_RADIUS_PX}px`;
@@ -107,7 +107,7 @@ export class HealthBar {
         inner.style.height = "100%";
         inner.style.width = "100%"; // full health at start
         inner.style.transition = `width ${DEFAULT_TRANSITION_MS}ms linear, background ${DEFAULT_TRANSITION_MS}ms linear`;
-        inner.style.background = HealthBar.composeGradientForPercent(100);
+        inner.style.background = HealthBar.composeGradient(100);
 
         // Text overlay which shows numeric health and custom text
         const text = document.createElement("div");
@@ -146,12 +146,11 @@ export class HealthBar {
     updateHealthBar(character: Character) {
         if (!character.innerBar || !character.healthText) return;
 
-        // Clamp between 0 and 100 and compute percent string
         const percent = Math.max(0, Math.min(100, (character.health / Math.max(character.healthCap, 1)) * 100));
 
         // Update inner bar width and gradient coloring based on percent
         character.innerBar.style.width = `${percent}%`;
-        character.innerBar.style.background = HealthBar.composeGradientForPercent(percent);
+        character.innerBar.style.background = HealthBar.composeGradient(percent);
 
         // Numeric text. "Current health / Max health"
         const labelPrefix = character.name ? `${character.name}: ` : "";
@@ -159,7 +158,7 @@ export class HealthBar {
     }
 
     // Helper to compute a gradient string based on percent health (green -> yellow -> red)
-    private static composeGradientForPercent(percent: number) {
+    private static composeGradient(percent: number) {
         // Interpolate colors roughly:
         // >60% green, 30-60% yellowish, <30% red
         const p = Math.max(0, Math.min(100, percent));

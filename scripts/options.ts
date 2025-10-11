@@ -19,7 +19,8 @@
         sleepFrameSpeed: 0.1,
         idleTime: 60000,  // 60 seconds
         language: 'en',
-        sprite: 'Niko'
+        sprite: 'Niko',
+        movement: 'new',
     };
 
     function updateDisplay() {
@@ -28,19 +29,19 @@
     }
 
     // Load current settings
-    browser.storage.local.get(["nikoSpeed", "sleepFrameSpeed", "idleTime", "language", "sprite"]).then(options => {
+    browser.storage.local.get(["nikoSpeed", "sleepFrameSpeed", "idleTime", "language", "sprite", "movement"]).then(options => {
         nikoSpeedInput.value = options.nikoSpeed || defaultOptions.nikoSpeed.toString();
         sleepFrameSpeedInput.value = options.sleepFrameSpeed || defaultOptions.sleepFrameSpeed.toString();
         idleTimeInput.value = Math.floor((options.idleTime || defaultOptions.idleTime) / 1000).toString();
         updateDisplay();
 
-        // Set the language from storage if available, otherwise use default ("en")
         const savedLanguage = options.language || 'en';
-        (document.getElementById("languageSelect") as HTMLSelectElement).value = savedLanguage;
         setLanguage(savedLanguage);
+        (document.getElementById("languageSelect") as HTMLSelectElement).value = savedLanguage;
 
-        // Set the sprite from storage if available, otherwise use default ("Niko")
-        (document.getElementById("spriteSelect") as HTMLSelectElement).value = options.sprite || 'Niko';
+        (document.getElementById("spriteSelect") as HTMLSelectElement).value = (options.sprite || defaultOptions.sprite);
+        (document.getElementById("movementSelect") as HTMLSelectElement).value = (options.movement || defaultOptions.movement);
+
     });
 
     // Update displayed slider values
@@ -70,10 +71,12 @@
             sleepFrameSpeed: parseFloat(sleepFrameSpeedInput.value),
             idleTime: parseInt(idleTimeInput.value, 10) * 1000,
             language: (document.getElementById("languageSelect") as HTMLSelectElement).value,
-            sprite: (document.getElementById("spriteSelect") as HTMLSelectElement).value
+            sprite: (document.getElementById("spriteSelect") as HTMLSelectElement).value,
+            movement: (document.getElementById("movementSelect") as HTMLSelectElement).value
         };
         // Save to local storage
         browser.storage.local.set(options).then(() => {
+            console.log((document.getElementById("movementSelect") as HTMLSelectElement).value)
             console.log("Settings saved successfully.");
         }).catch(error => {
             console.error("Error saving settings:", error);
@@ -100,6 +103,9 @@
             spriteTWM: "The World Machine",
             spriteSurvivor: "Survivor",
             spriteWatcher: "Watcher",
+            movementLabel: "Movement algorithm:",
+            movementNew: "New",
+            movementLegacy: "Legacy",
             languageLabel: "Choose language:"
         },
         ru: {
@@ -115,6 +121,9 @@
             spriteTWM: "Мировая Машина",
             spriteSurvivor: "Выживший",
             spriteWatcher: "Созерцатель",
+            movementLabel: "Алгоритм движения:",
+            movementNew: "Новый",
+            movementLegacy: "Старый",
             languageLabel: "Выберите язык:"
         }
     };
@@ -153,17 +162,32 @@
             document.querySelector('label[for="spriteSelect"]')!.textContent = translations[lang].spriteLabel;
             const spriteSelect = document.getElementById("spriteSelect") as HTMLSelectElement;
             spriteSelect.innerHTML = '';
-            const options = [
+            const spriteOptions = [
                 { value: "Niko", text: translations[lang].spriteNiko },
                 { value: "TWM", text: translations[lang].spriteTWM },
                 { value: "Survivor", text: translations[lang].spriteSurvivor },
                 { value: "Watcher", text: translations[lang].spriteWatcher },
             ];
-            options.forEach((option) => {
+            spriteOptions.forEach((option) => {
                 const opt = document.createElement("option");
                 opt.value = option.value;
                 opt.textContent = option.text;
                 spriteSelect.appendChild(opt);
+            });
+
+            // Update movement label text
+            document.querySelector('label[for="movementSelect"]')!.textContent = translations[lang].movementLabel;
+            const movementSelect = document.getElementById("movementSelect") as HTMLSelectElement;
+            movementSelect.innerHTML = '';
+            const movementOptions = [
+                { value: "new", text: translations[lang].movementNew },
+                { value: "legacy", text: translations[lang].movementLegacy },
+            ];
+            movementOptions.forEach((option) => {
+                const opt = document.createElement("option");
+                opt.value = option.value;
+                opt.textContent = option.text;
+                movementSelect.appendChild(opt);
             });
 
             // Update the lang attribute in the html tag

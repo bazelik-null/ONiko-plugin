@@ -1,268 +1,347 @@
-import {enemy, player, vignette} from "./health";
+import { enemy, player, vignette } from "./health";
 import { LineData } from "./utils";
 
-//TODO: Refactor this piece of shitcode. It's horrible
+let helpers: Helpers;
+export let effects: Effects;
 
-const homingSpeed = 5;
-let mousePosX = 0;
-let mousePosY = 0;
+export let lineHazard: LineHazard;
+export let squareHazard: SquareHazard;
+export let homingHazard: HomingHazard;
 
-let linesArray: Array<LineData> = [];
+export function initHazards() {
+    effects = new Effects();
+    helpers = new Helpers();
 
-let damageTimeout: NodeJS.Timeout | null = null;
-
-export function createGlitchElements(isPermanent: Boolean = false) {
-    if (player.isDead || enemy.isDead) {
-        return;
-    }
-
-    const count = 3
-    const elements: Array<HTMLDivElement> = [];
-
-    for (let i = 0; i < count; i++) {
-        const div = document.createElement('div');
-        div.style.width = '128px';
-        div.style.height = '128px';
-        div.style.backgroundImage = `url(${browser.runtime.getURL("img/glitch.png")})`;
-        div.style.backgroundSize = 'cover';
-        div.style.position = 'absolute';
-        div.style.top = `${Math.random() * 100}vh`;
-        div.style.left = `${Math.random() * 100}vw`;
-        div.style.zIndex = '9999';
-        div.style.opacity = '1';
-        div.style.backgroundColor = 'transparent';
-        document.body.appendChild(div);
-        elements.push(div);
-    }
-
-    if (isPermanent) return;
-
-    setTimeout(() => {
-        elements.forEach(element => {
-            document.body.removeChild(element);
-        });
-    }, 1000);
+    lineHazard = new LineHazard();
+    squareHazard = new SquareHazard();
+    homingHazard = new HomingHazard();
 }
 
-export function createWarnLine() {
-    const warn = document.createElement("div");
-    const isHorizontal = Math.random() > 0.5;
-    const height = isHorizontal ? "10px" : "100vh";
-    const width = isHorizontal ? "100vw" : "10px";
-    const top = isHorizontal ? Math.floor(Math.random() * (window.innerHeight - 1)) : 0;
-    const left = isHorizontal ? 0 : Math.floor(Math.random() * (window.innerWidth - 1));
+export class Helpers {
+    private static readonly DAMAGE_COOLDOWN = 50;
 
-    warn.style.position = "absolute";
-    warn.style.zIndex = (1000).toString();
-    warn.style.backgroundColor = "rgba(66, 0, 128, 0.5)";
-    warn.style.height = height;
-    warn.style.width = width;
-    warn.style.top = `${top}px`;
-    warn.style.left = `${left}px`;
+    private damageTimeout: number | null = null;
 
-    document.body.appendChild(warn);
-
-    const lineData = new LineData(isHorizontal, left, top);
-
-    setTimeout(() => {
-        createLine(warn, lineData);
-        warn.remove();
-    }, 1000);
-}
-
-export function createLine(warn: HTMLDivElement, lineData: LineData) {
-    const line = document.createElement("div");
-    line.style.position = "absolute";
-    line.style.zIndex = (1000).toString();
-    line.style.backgroundColor = "rgb(66, 0, 128)";
-    line.style.width = "25px";
-    line.style.height = "100vh";
-    line.style.top = "0px";
-    line.style.left = warn.style.left;
-
-    if (warn.style.width === "100vw") {
-        line.style.width = "100vw";
-        line.style.height = "25px";
-        line.style.top = warn.style.top;
-        line.style.left = "0px";
+    public applyBaseElementStyle(el: HTMLElement, z = 1000) {
+        el.style.position = "absolute";
+        el.style.zIndex = String(z);
     }
 
-    document.body.appendChild(line);
-
-    linesArray.push(lineData);
-
-    setTimeout(() => {
-        line.remove();
-        linesArray.splice(0, 1);
-    }, 1000);
-}
-
-export function checkLineCollision() {
-    if (damageTimeout) return
-
-    for (const i in linesArray) {
-        switch (linesArray[i].isHorizontal) {
-            case true: {
-                const distance = Math.abs(linesArray[i].y - mousePosY);
-                if (distance < 25) {
-                    enemy.attacker(player, enemy, 0);
-                    vignette.updateVignette(player);
-                    createGlitchElements()
-                    damageTimeout = setTimeout(() => {
-                        damageTimeout = null;
-                    }, 50);
-                }
-                break
-            }
-            case false: {
-                const distance = Math.abs(linesArray[i].x - mousePosX);
-                if (distance < 25) {
-                    enemy.attacker(player, enemy, 0);
-                    vignette.updateVignette(player);
-                    createGlitchElements()
-                    damageTimeout = setTimeout(() => {
-                        damageTimeout = null;
-                    }, 50);
-                }
-                break
-            }
-        }
-    }
-}
-
-export function createSquare() {
-    const square = document.createElement("div");
-    square.style.position = "absolute";
-    square.style.zIndex = (1000).toString();
-    square.style.backgroundColor = "rgb(66, 0, 128)";
-    square.style.width = "20px";
-    square.style.height = "20px";
-    square.style.top = "0px";
-    square.style.left = Math.random() * (window.innerWidth - 30) + "px";
-
-    document.body.appendChild(square);
-
-    let positionY = 0;
-    let positionX = Math.random() < 0.5 ? -5 : 5; // Random horizontal direction
-
-    const interval = setInterval(() => {
-        positionY += 5;
-        square.style.top = positionY + "px";
-
-        const currentLeft = parseFloat(square.style.left);
-        square.style.left = (currentLeft + positionX) + "px";
-
-        if (positionY > window.innerHeight) {
-            clearInterval(interval);
-            square.remove();
-        }
-
-        if (parseFloat(square.style.left) < 0 || parseFloat(square.style.left) > window.innerWidth - 30) {
-            positionX = -positionX;
-        }
-    }, 50);
-
-    square.addEventListener("mouseover", () => {
+    public attacker() {
         enemy.attacker(player, enemy, 0);
         vignette.updateVignette(player);
-        createGlitchElements();
-        square.remove();
-    });
+        effects.createGlitchElements();
+        this.damageTimeout = window.setTimeout(() => {
+            this.damageTimeout = null;
+        }, Helpers.DAMAGE_COOLDOWN) as unknown as number;
+    }
 }
 
-document.addEventListener("mousemove", (event) => {
-    mousePosX = event.clientX;
-    mousePosY = event.clientY;
-});
+export class Effects {
+    private static readonly GLITCH_SIZE = 128;
+    private static readonly GLITCH_DURATION = 1000;
 
-export function createHoming() {
-    const homing = document.createElement("div");
-    homing.style.position = "absolute";
-    homing.style.zIndex = (1000).toString();
-    homing.style.width = "0";
-    homing.style.height = "0";
-    homing.style.borderLeft = "15px solid transparent";
-    homing.style.borderRight = "15px solid transparent";
-    homing.style.borderBottom = "30px solid rgb(66, 0, 128)";
-    document.body.appendChild(homing);
+    public createGlitchElements(isPermanent = false) {
+        if (player.isDead || enemy.isDead) return;
 
+        const count = 3;
+        const elements: HTMLDivElement[] = [];
 
-    let homingPosX = Math.random() * window.innerWidth;
-    let homingPosY = Math.random() * window.innerHeight;
+        for (let i = 0; i < count; i++) {
+            const div = document.createElement("div");
+            helpers.applyBaseElementStyle(div, 9999);
 
-    homing.style.top = `${homingPosY}px`;
-    homing.style.left = `${homingPosX}px`;
-
-    function moveHoming() {
-        const diffX = homingPosX - mousePosX;
-        const diffY = homingPosY - mousePosY;
-        const distance = Math.hypot(diffX, diffY);
-
-        if (distance) {
-            const normalizedX = diffX / distance;
-            const normalizedY = diffY / distance;
-
-            const angle = Math.atan2(normalizedY, normalizedX) * (180 / Math.PI);
-            homing.style.transform = `rotate(${angle}deg)`;
-
-            homingPosX -= (diffX / distance) * homingSpeed;
-            homingPosY -= (diffY / distance) * homingSpeed;
-
-            homing.style.top = `${homingPosY}px`;
-            homing.style.left = `${homingPosX}px`;
+            div.style.width = `${Effects.GLITCH_SIZE}px`;
+            div.style.height = `${Effects.GLITCH_SIZE}px`;
+            div.style.backgroundImage = `url(${browser.runtime.getURL("img/glitch.png")})`;
+            div.style.backgroundSize = "cover";
+            // place randomly
+            div.style.top = `${Math.random() * 100}vh`;
+            div.style.left = `${Math.random() * 100}vw`;
+            div.style.opacity = "1";
+            div.style.backgroundColor = "transparent";
+            document.body.appendChild(div);
+            elements.push(div);
         }
 
-        if (Math.abs(homingPosX - mousePosX) < 30 && Math.abs(homingPosY - mousePosY) < 30) {
-            enemy.attacker(player, enemy, 0);
-            vignette.updateVignette(player);
-            homing.remove();
-            createGlitchElements();
+        if (isPermanent) return;
+
+        window.setTimeout(() => {
+            elements.forEach((el) => el.remove());
+        }, Effects.GLITCH_DURATION);
+    }
+}
+
+export class LineHazard {
+    private static readonly WARN_DURATION = 1000;
+    private static readonly LINE_DURATION = 1000;
+    private static readonly LINE_THICKNESS = 25;
+
+    private lines: LineData[] = [];
+    private damageTimeout: number | null = null;
+
+    private mouseX = 0;
+    private mouseY = 0;
+
+    public createWarnLine() {
+        const warn = document.createElement("div");
+        const isHorizontal = Math.random() > 0.5;
+
+        helpers.applyBaseElementStyle(warn, 1000);
+        warn.style.backgroundColor = "rgba(66, 0, 128, 0.5)";
+
+        if (isHorizontal) {
+            // horizontal line
+            warn.style.height = "10px";
+            warn.style.width = "100vw";
+            warn.style.top = `${Math.floor(Math.random() * (window.innerHeight - 1))}px`;
+            warn.style.left = "0px";
         } else {
-            requestAnimationFrame(moveHoming);
+            // vertical line
+            warn.style.height = "100vh";
+            warn.style.width = "10px";
+            warn.style.top = "0px";
+            warn.style.left = `${Math.floor(Math.random() * (window.innerWidth - 1))}px`;
+        }
+
+        document.body.appendChild(warn);
+
+        const lineData = new LineData(isHorizontal, parseFloat(warn.style.left), parseFloat(warn.style.top));
+
+        window.setTimeout(() => {
+            this.createLine(warn, lineData);
+            warn.remove();
+        }, LineHazard.WARN_DURATION);
+    }
+
+    private createLine(warn: HTMLDivElement, lineData: LineData) {
+        const line = document.createElement("div");
+        helpers.applyBaseElementStyle(line, 1000);
+        line.style.backgroundColor = "rgb(66, 0, 128)";
+
+        line.style.width = `${LineHazard.LINE_THICKNESS}px`;
+        line.style.height = "100vh";
+        line.style.top = "0px";
+        line.style.left = warn.style.left;
+
+        // switch dimensions if warn line is horizontal
+        if (warn.style.width === "100vw") {
+            line.style.width = "100vw";
+            line.style.height = `${LineHazard.LINE_THICKNESS}px`;
+            line.style.top = warn.style.top;
+            line.style.left = "0px";
+        }
+
+        document.body.appendChild(line);
+
+        this.lines.push(lineData);
+
+        window.setTimeout(() => {
+            line.remove();
+            const idx = this.lines.findIndex(
+                (ld) => ld.isHorizontal === lineData.isHorizontal && ld.x === lineData.x && ld.y === lineData.y
+            );
+            if (idx !== -1) this.lines.splice(idx, 1);
+        }, LineHazard.LINE_DURATION);
+    }
+
+    public checkLineCollision() {
+        if (this.damageTimeout !== null) return;
+
+        for (const line of this.lines) {
+            if (line.isHorizontal) {
+                const distance = Math.abs(line.y - this.mouseY);
+                if (distance < LineHazard.LINE_THICKNESS / 2) {
+                    helpers.attacker();
+                    break;
+                }
+            } else {
+                const distance = Math.abs(line.x - this.mouseX);
+                if (distance < LineHazard.LINE_THICKNESS / 2) {
+                    helpers.attacker();
+                    break;
+                }
+            }
         }
     }
 
-    moveHoming();
-
-    setTimeout(() => {
-        homing.remove();
-    }, 3000);
+    constructor() {
+        document.addEventListener("mousemove", (e) => {
+            this.mouseX = e.clientX;
+            this.mouseY = e.clientY;
+        });
+    }
 }
 
-export function createHeal() {
-    const heal = document.createElement("div");
-    heal.style.position = "absolute";
-    heal.style.zIndex = (1000).toString();
-    heal.style.backgroundColor = "green";
-    heal.style.width = "20px";
-    heal.style.height = "20px";
-    heal.style.top = "0px";
-    heal.style.left = Math.random() * (window.innerWidth - 30) + "px";
+export class SquareHazard {
+    private static readonly SQUARE_SIZE = 20;
+    private static readonly SQUARE_STEP = 5;
+    private static readonly SQUARE_TICK = 50;
+    private static readonly SQUARE_HORIZONTAL_SPEED = 5;
 
-    document.body.appendChild(heal);
+    public createSquare() {
+        const square = document.createElement("div");
+        helpers.applyBaseElementStyle(square, 1000);
+        square.style.backgroundColor = "rgb(66, 0, 128)";
+        square.style.width = `${SquareHazard.SQUARE_SIZE}px`;
+        square.style.height = `${SquareHazard.SQUARE_SIZE}px`;
+        square.style.top = "0px";
+        square.style.left = `${Math.random() * (window.innerWidth - SquareHazard.SQUARE_SIZE)}px`;
 
-    let positionY = 0;
-    let positionX = Math.random() < 0.5 ? -5 : 5; // Random horizontal direction
+        document.body.appendChild(square);
 
-    const interval = setInterval(() => {
-        positionY += 5;
-        heal.style.top = positionY + "px";
+        let positionY = 0;
+        let positionX = Math.random() < 0.5 ? -SquareHazard.SQUARE_HORIZONTAL_SPEED : SquareHazard.SQUARE_HORIZONTAL_SPEED;
 
-        const currentLeft = parseFloat(heal.style.left);
-        heal.style.left = (currentLeft + positionX) + "px";
+        const tick = () => {
+            positionY += SquareHazard.SQUARE_STEP;
+            square.style.top = `${positionY}px`;
 
-        if (positionY > window.innerHeight) {
-            clearInterval(interval);
+            const currentLeft = parseFloat(square.style.left);
+            square.style.left = `${currentLeft + positionX}px`;
+
+            // Bounce horizontally when reaching edge
+            if (parseFloat(square.style.left) < 0 || parseFloat(square.style.left) > window.innerWidth - SquareHazard.SQUARE_SIZE) {
+                positionX = -positionX;
+            }
+
+            if (positionY > window.innerHeight) {
+                square.remove();
+            } else {
+                window.setTimeout(tick, SquareHazard.SQUARE_TICK);
+            }
+        };
+
+        tick();
+
+        square.addEventListener("mouseover", () => {
+            enemy.attacker(player, enemy, 0);
+            vignette.updateVignette(player);
+            effects.createGlitchElements();
+            square.remove();
+        });
+    }
+
+    public createHeal() {
+        const heal = document.createElement("div");
+        helpers.applyBaseElementStyle(heal, 1000);
+        heal.style.backgroundColor = "green";
+        heal.style.width = `${SquareHazard.SQUARE_SIZE}px`;
+        heal.style.height = `${SquareHazard.SQUARE_SIZE}px`;
+        heal.style.top = "0px";
+        heal.style.left = `${Math.random() * (window.innerWidth - SquareHazard.SQUARE_SIZE)}px`;
+
+        document.body.appendChild(heal);
+
+        let positionY = 0;
+        let positionX = Math.random() < 0.5 ? - SquareHazard.SQUARE_HORIZONTAL_SPEED : SquareHazard.SQUARE_HORIZONTAL_SPEED;
+
+        const tick = () => {
+            positionY += SquareHazard.SQUARE_STEP;
+            heal.style.top = `${positionY}px`;
+
+            const currentLeft = parseFloat(heal.style.left);
+            heal.style.left = `${currentLeft + positionX}px`;
+
+            if (parseFloat(heal.style.left) < 0 || parseFloat(heal.style.left) > window.innerWidth - SquareHazard.SQUARE_SIZE) {
+                positionX = -positionX;
+            }
+
+            if (positionY > window.innerHeight) {
+                heal.remove();
+            } else {
+                window.setTimeout(tick, SquareHazard.SQUARE_TICK);
+            }
+        };
+
+        tick();
+
+        heal.addEventListener("mouseover", () => {
+            player.healer(player, 15);
             heal.remove();
-        }
+        });
+    }
+}
 
-        if (parseFloat(heal.style.left) < 0 || parseFloat(heal.style.left) > window.innerWidth - 30) {
-            positionX = -positionX;
-        }
-    }, 50);
+export class HomingHazard {
+    private static readonly HOMING_SPEED = 5;
+    private static readonly HOMING_LIFETIME = 3000;
+    private static readonly HOMING_HIT_RADIUS = 30;
 
-    heal.addEventListener("mouseover", () => {
-        player.healer(player, 15)
-        heal.remove();
-    });
+    private mouseX = 0;
+    private mouseY = 0;
+
+    public createHoming() {
+        const homing = document.createElement("div");
+        helpers.applyBaseElementStyle(homing, 1000);
+        homing.style.width = "0";
+        homing.style.height = "0";
+        homing.style.borderLeft = "15px solid transparent";
+        homing.style.borderRight = "15px solid transparent";
+        homing.style.borderBottom = "30px solid rgb(66, 0, 128)";
+        document.body.appendChild(homing);
+
+        let homingX = Math.random() * window.innerWidth;
+        let homingY = Math.random() * window.innerHeight;
+
+        homing.style.left = `${homingX}px`;
+        homing.style.top = `${homingY}px`;
+
+        let alive = true;
+        const startTime = performance.now();
+
+        const step = () => {
+            if (!alive) return;
+
+            // compute vector from homing to current mouse position
+            const dx = this.mouseX - homingX;
+            const dy = this.mouseY - homingY;
+            const dist = Math.hypot(dx, dy);
+
+            if (dist > 0) {
+                // normalized vector scaled by speed constant
+                const vx = (dx / dist) * HomingHazard.HOMING_SPEED;
+                const vy = (dy / dist) * HomingHazard.HOMING_SPEED;
+
+                homingX += vx;
+                homingY += vy;
+
+                // rotate to face target (add 90 deg because shape points down initially)
+                const angle = Math.atan2(vy, vx) * (180 / Math.PI) + 90;
+                homing.style.transform = `rotate(${angle}deg)`;
+
+                homing.style.left = `${homingX}px`;
+                homing.style.top = `${homingY}px`;
+            }
+
+            // collision check
+            const hit = Math.hypot(homingX - this.mouseX, homingY - this.mouseY) < HomingHazard.HOMING_HIT_RADIUS;
+
+            if (hit) {
+                enemy.attacker(player, enemy, 0);
+                vignette.updateVignette(player);
+                homing.remove();
+                effects.createGlitchElements();
+                alive = false;
+                return;
+            }
+
+            if (performance.now() - startTime > HomingHazard.HOMING_LIFETIME) {
+                homing.remove();
+                alive = false;
+                return;
+            }
+
+            requestAnimationFrame(step);
+        };
+
+        requestAnimationFrame(step);
+    }
+
+    constructor() {
+        document.addEventListener("mousemove", (e) => {
+            this.mouseX = e.clientX;
+            this.mouseY = e.clientY;
+        });
+    }
 }

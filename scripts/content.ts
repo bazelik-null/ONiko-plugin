@@ -2,8 +2,9 @@
 /* ---------- ONIKO MAIN ---------- */
 /* -------------------------------- */
 
-import {vignette, player, initBattleUI} from './health';
+import { vignette, player, initBattleUI } from './health';
 import { fightFrame, moveNikoRandom } from "./fight";
+import { initHazards } from "./projectiles";
 
 const nikoElement = document.createElement("div");
 
@@ -28,13 +29,14 @@ let isFight = window.isFight;
 let nikoSpeed: number;
 let sleepFrameSpeed: number;
 let idleTime: number;
+let movementType: string;
 
 let frameCount = 0;
 let sleepFrameCount = 0;
 let lastFrameTimestamp: number;
 let sleepTimer: NodeJS.Timeout | null = null;
 
-let character: string;
+let sprite: string;
 
 let spriteWalk: any, spriteSleep: any, spriteSet: any;
 let nikoWalk: string, nikoSleep: string;
@@ -47,7 +49,7 @@ window.addEventListener("beforeunload", function () {
     }
 });
 
-browser.storage.local.get(["nikoPosX", "nikoPosY", "mousePosX", "mousePosY", "isSleeping", "sleepFrameSpeed", "nikoSpeed", "idleTime", "sprite"]).then((result) => {
+browser.storage.local.get(["nikoPosX", "nikoPosY", "mousePosX", "mousePosY", "isSleeping", "sleepFrameSpeed", "nikoSpeed", "idleTime", "sprite", "movement"]).then((result) => {
     nikoPosX = result.nikoPosX || 32;
     nikoPosY = result.nikoPosY || 32;
     mousePosX = result.mousePosX || 0;
@@ -56,15 +58,14 @@ browser.storage.local.get(["nikoPosX", "nikoPosY", "mousePosX", "mousePosY", "is
     sleepFrameSpeed = result.sleepFrameSpeed || 0.1;
     nikoSpeed = result.nikoSpeed || 10;
     idleTime = result.idleTime || 60000;
-    character = result.sprite || "Niko";
+    sprite = result.sprite || "Niko";
+    movementType = result.movement || "new";
 
     //Enable easter egg
     if (idleTime === 143000) {
         initBattleUI()
+        initHazards()
 
-        // Set values
-        nikoSpeed = 10
-        character = "TWM"
         isFight = true;
         window.setFight(true)
 
@@ -76,7 +77,7 @@ browser.storage.local.get(["nikoPosX", "nikoPosY", "mousePosX", "mousePosY", "is
         window.addEventListener('wheel', stopWheelEvent, { passive: false });
     }
 
-    fetch(browser.runtime.getURL("img/" + character + "/meta.json"))
+    fetch(browser.runtime.getURL("img/" + sprite + "/meta.json"))
         .then(response => {
             return response.json();
         })
@@ -192,7 +193,7 @@ function frame() {
     const distance = Math.hypot(diffX, diffY);
 
     // Start sleep timer if Niko is near the mouse and not already sleeping.
-    if (distance < 128 && !sleepTimer && !isSleeping) {
+    if (distance < 256 && !sleepTimer && !isSleeping) {
         sleepTimer = setTimeout(() => {
             isSleeping = true;
             sleepFrameCount = 0;
@@ -218,18 +219,11 @@ function frame() {
         return;
     }
 
-    // Stop animation if Niko is close to the mouse.
-    if (distance < width || distance < height) { // Используем размеры спрайта
-        setSprite(direction || "idle", 0, "walk");
-        return;
+    if (movementType == "new") {
+        nikoMovement(distance, normalizedX, normalizedY, diffY, diffX);
+    } else if (movementType == "legacy") {
+        legacyNikoMovement(distance, normalizedX, normalizedY, diffY, diffX);
     }
-
-    setSprite(direction, frameCount, "walk");
-
-    nikoPosX -= (diffX / distance) * nikoSpeed;
-    nikoPosY -= (diffY / distance) * nikoSpeed;
-
-    updateNikoPosition();
 }
 
 // Primary animation loop.
@@ -248,6 +242,52 @@ function onAnimationFrame(timestamp: number) {
         }
     }
     window.requestAnimationFrame(onAnimationFrame);
+}
+
+function nikoMovement(distance: number, normalizedX: number, normalizedY: number, diffY: number, diffX: number) {
+    // If niko is closer than 128 go further from mouse
+    if (distance < 128 || distance < 128) {
+        if (normalizedY > 0.5) {
+            direction = "N";
+        } else if (normalizedY < -0.5) {
+            direction = "S";
+        } else if (normalizedX > 0.5) {
+            direction = "W";
+        } else if (normalizedX < -0.5) {
+            direction = "E";
+        }
+        nikoPosX += (diffX / distance) * nikoSpeed;
+        nikoPosY += (diffY / distance) * nikoSpeed;
+    }
+    // If niko is in position between 128 and 256 stand still
+    else if ((distance > 128 || distance > 128) && (distance < 256 || distance < 256)) {
+        setSprite(direction || "idle", 0, "walk");
+        return;
+    }
+    // Else go to mouse
+    else {
+        nikoPosX -= (diffX / distance) * nikoSpeed;
+        nikoPosY -= (diffY / distance) * nikoSpeed;
+    }
+
+    setSprite(direction, frameCount, "walk");
+
+    updateNikoPosition();
+}
+
+function legacyNikoMovement(distance: number, normalizedX: number, normalizedY: number, diffY: number, diffX: number) {
+    // Stop animation if Niko is close to the mouse.
+    if (distance < width || distance < height) {
+        setSprite(direction || "idle", 0, "walk");
+        return;
+    }
+
+    nikoPosX -= (diffX / distance) * nikoSpeed;
+    nikoPosY -= (diffY / distance) * nikoSpeed;
+
+    setSprite(direction, frameCount, "walk");
+
+    updateNikoPosition();
 }
 
 function resetSleepTimer(isBlocked: boolean) {

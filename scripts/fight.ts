@@ -1,8 +1,7 @@
 import { vignette, player, enemy } from './health'
-import { setSprite, updateNikoPosition, direction, nikoPosX, nikoPosY, mousePosX, mousePosY, width, height } from './content'
-import { createWarnLine, createSquare, createHeal, createGlitchElements, createHoming, checkLineCollision } from "./projectiles";
-
-//TODO: Better refactor this. Looks bad to me.
+import { setSprite, updateNikoPosition, direction, nikoPosX, nikoPosY, mousePosX, mousePosY } from './content'
+import { effects, homingHazard, lineHazard, squareHazard } from "./projectiles";
+import { Character } from "./character";
 
 let removalTimeout: NodeJS.Timeout | null = null;
 let lineTimeout: NodeJS.Timeout | null = null;
@@ -11,6 +10,19 @@ let healTimeout: NodeJS.Timeout | null = null;
 let homingTimeout: NodeJS.Timeout | null = null;
 
 let isFight = false;
+
+const FIGHT_CONFIG = {
+    NIKO_MARGIN: 16,
+    NIKO_ATTACK_COOLDOWN: 300,
+    LINE_COOLDOWN_PHASE_0: 1000,
+    LINE_COOLDOWN_PHASE_2: 600,
+    SQUARE_COOLDOWN_PHASE_0: 25,
+    SQUARE_COOLDOWN_PHASE_1: 35,
+    HEAL_COOLDOWN: 30000,
+    HOMING_COOLDOWN_PHASE_1: 7000,
+    HOMING_COOLDOWN_PHASE_2: 500,
+    ATTACK_DISTANCE_PADDING: 0.05,
+};
 
 window.isFight = isFight;
 window.setFight = setFight;
@@ -29,104 +41,98 @@ export function moveNikoRandom() {
     updateNikoPosition();
 }
 
+function checkPhase(character: Character) {
+    const percent = Math.max(0, Math.min(100, (character.health / Math.max(character.healthCap, 1)) * 100));
+    const p = Math.max(0, Math.min(100, percent));
+
+    if (p > 70) {
+        character.phase = 0;
+    } else if (p > 30) {
+        character.phase = 1;
+    } else {
+        character.phase = 2;
+    }
+}
+
 export function fightFrame() {
-    if (!isFight) {
-        return;
-    }
+    if (!isFight) return;
 
-    if (enemy.phase == null) {
-        return;
-    }
+    if (enemy.isDead) { showResult(true); return; }
+    if (player.isDead) { showResult(false); return; }
 
-    if (enemy.isDead) {
-        showResult(true);
-        return;
-    }
-
-    if (player.isDead) {
-        showResult(false);
-        return;
-    }
-
-    const diffX = nikoPosX - (mousePosX || nikoPosX);
-    const diffY = nikoPosY - (mousePosY || nikoPosY);
-    const distance = Math.hypot(diffX, diffY);
+    // Compute vector from Niko to mouse
+    const targetX = mousePosX ?? nikoPosX;
+    const targetY = mousePosY ?? nikoPosY;
+    const dx = nikoPosX - targetX;
+    const dy = nikoPosY - targetY;
+    const distance = Math.hypot(dx, dy);
 
     setSprite(direction || "idle", 0, "walk");
 
-    if (distance && (distance < width || distance < height)) {
-        // Attack niko
+    const minScreen = Math.min(window.innerWidth, window.innerHeight);
+    const attackThreshold = minScreen * FIGHT_CONFIG.ATTACK_DISTANCE_PADDING;
+
+    checkPhase(enemy)
+
+    // Attack enemy if player is close
+    if (distance > 0 && distance < attackThreshold) {
         if (!removalTimeout) {
-            player.attacker(enemy, player, 0)
-            createGlitchElements();
+            player.attacker(enemy, player, 0);
+            effects.createGlitchElements();
             moveNikoRandom();
 
-            removalTimeout = setTimeout(() => {
-                removalTimeout = null;
-            }, 300); // Cooldown
+            // Start attack cooldown
+            removalTimeout = setTimeout(() => { removalTimeout = null; }, FIGHT_CONFIG.NIKO_ATTACK_COOLDOWN);
         }
     }
 
-    // Constrain Niko within the window boundaries.
-    window.setNikoPosX(Math.min(Math.max(16, nikoPosX), window.innerWidth - 16));
-    window.setNikoPosY(Math.min(Math.max(16, nikoPosY), window.innerHeight - 16));
+    // Keep Niko inside screen
+    window.setNikoPosX(Math.min(Math.max(FIGHT_CONFIG.NIKO_MARGIN, nikoPosX), window.innerWidth - FIGHT_CONFIG.NIKO_MARGIN));
+    window.setNikoPosY(Math.min(Math.max(FIGHT_CONFIG.NIKO_MARGIN, nikoPosY), window.innerHeight - FIGHT_CONFIG.NIKO_MARGIN));
 
-    checkLineCollision()
+    lineHazard.checkLineCollision();
+
+    // Helper to choose phase-based cooldown times
+    // Shut up TS
+    // @ts-ignore
+    const getLineCooldown = () => (enemy.phase >= 2 ? FIGHT_CONFIG.LINE_COOLDOWN_PHASE_2 : FIGHT_CONFIG.LINE_COOLDOWN_PHASE_0);
+    const getSquareCooldown = () => (enemy.phase === 0 ? FIGHT_CONFIG.SQUARE_COOLDOWN_PHASE_0 : FIGHT_CONFIG.SQUARE_COOLDOWN_PHASE_1);
+    const getHomingCooldown = () => (enemy.phase === 1 ? FIGHT_CONFIG.HOMING_COOLDOWN_PHASE_1 : FIGHT_CONFIG.HOMING_COOLDOWN_PHASE_2);
 
     // Spawn line attacks
     if (!lineTimeout) {
-        createWarnLine();
-        if (enemy.phase < 2) {
-            lineTimeout = setTimeout(() => {
-                lineTimeout = null;
-            }, 1000); // 1 second
-        } else {
-            lineTimeout = setTimeout(() => {
-                lineTimeout = null;
-            }, 750); // 1 second
-        }
+        lineHazard.createWarnLine();
+        lineTimeout = setTimeout(() => { lineTimeout = null; }, getLineCooldown());
     }
 
-    // Spawn squares attacks
-    if (!squareTimeout && enemy.phase < 2) {
-        createSquare();
-        if (enemy.phase === 0) {
-            squareTimeout = setTimeout(() => {
-                squareTimeout = null;
-            }, 75);
-        } else {
-            squareTimeout = setTimeout(() => {
-                squareTimeout = null;
-            }, 50);
-        }
+    // Spawn square attacks
+    // Shut up twice
+    // @ts-ignore
+    if (enemy.phase < 2 && !squareTimeout) {
+        squareHazard.createSquare();
+        squareTimeout = setTimeout(() => { squareTimeout = null; }, getSquareCooldown());
     }
 
     // Spawn heals
     if (!healTimeout) {
-        createHeal();
-        healTimeout = setTimeout(() => {
-            healTimeout = null;
-        }, 30000); // 60 seconds
+        squareHazard.createHeal();
+        healTimeout = setTimeout(() => { healTimeout = null; }, FIGHT_CONFIG.HEAL_COOLDOWN);
     }
 
-    // Spawn homing attacks
-    if (!homingTimeout && enemy.phase > 0) {
-        createHoming();
-        if (enemy.phase === 1) {
-            homingTimeout = setTimeout(() => {
-                homingTimeout = null;
-            }, 7000);
-        } else {
-            homingTimeout = setTimeout(() => {
-                homingTimeout = null;
-            }, 500);
-        }
+    // Spawn homing
+    // STFU TS
+    // @ts-ignore
+    if (enemy.phase > 0 && !homingTimeout) {
+        homingHazard.createHoming();
+        homingTimeout = setTimeout(() => { homingTimeout = null; }, getHomingCooldown());
     }
 
     updateNikoPosition();
 }
 
 function createEndOverlay(message: string, accent: string, btnLabel: string) {
+    // Don't look at this. It just works.
+    // Yeah, I can put that in css file. But im too lazy, shut up
     const backdrop = document.createElement('div');
     backdrop.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);z-index:10000;';
     const card = document.createElement('div');
