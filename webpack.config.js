@@ -13,8 +13,10 @@ const configuration = {
         options: path.join(__dirname, 'scripts', 'options.ts'),
         content: path.join(__dirname, 'scripts', 'content.ts'),
         projectiles: path.join(__dirname, 'scripts', 'projectiles.ts'),
-        health: path.join(__dirname, 'scripts', 'health.ts'),
         utils: path.join(__dirname, 'scripts', 'utils.ts'),
+        battleUI: path.join(__dirname, 'scripts', 'battleUI.ts'),
+        character: path.join(__dirname, 'scripts', 'character.ts'),
+        fight: path.join(__dirname, 'scripts', 'fight.ts'),
     },
     output: {
         path: path.join(__dirname, 'dist'),

@@ -2,7 +2,7 @@
 /* ---------- ONIKO MAIN ---------- */
 /* -------------------------------- */
 
-import { vignette, player, initBattleUI } from './health';
+import { vignette, player, initBattleUI } from './battleUI';
 import { fightFrame, moveNikoRandom } from "./fight";
 import { initHazards } from "./projectiles";
 

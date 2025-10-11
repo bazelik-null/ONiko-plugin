@@ -1,4 +1,4 @@
-import {healthBar} from "./health";
+import {healthBar, vignette} from "./battleUI";
 
 export class Character {
     name: string;
@@ -56,6 +56,8 @@ export class Character {
         }
 
         healthBar.updateHealthBar(character);
+
+        vignette.updateVignette(character);
 
         return
     }

@@ -1,4 +1,4 @@
-import { vignette, player, enemy } from './health'
+import { vignette, player, enemy } from './battleUI'
 import { setSprite, updateNikoPosition, direction, nikoPosX, nikoPosY, mousePosX, mousePosY } from './content'
 import { effects, homingHazard, lineHazard, squareHazard } from "./projectiles";
 import { Character } from "./character";

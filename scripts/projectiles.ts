@@ -1,4 +1,4 @@
-import { enemy, player, vignette } from "./health";
+import { enemy, player, vignette } from "./battleUI";
 import { LineData } from "./utils";
 
 let helpers: Helpers;

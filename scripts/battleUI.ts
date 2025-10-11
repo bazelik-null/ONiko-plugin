@@ -1,5 +1,20 @@
 import { Character } from "./character";
 
+export let player: Character;
+export let enemy: Character;
+export let vignette: Vignette;
+export let healthBar: HealthBar;
+
+export function initBattleUI() {
+    player = new Character("Player",100, 100, 0, 10, null)
+    enemy = new Character("Niko",150, 150, 0.75, 5, 0)
+    vignette = new Vignette();
+    healthBar = new HealthBar();
+
+    healthBar.createHpBar(player, "top", "Player");
+    healthBar.createHpBar(enemy, "bottom", "Niko");
+}
+
 const canvas = document.createElement("canvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
