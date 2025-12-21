@@ -2,22 +2,13 @@
 /* ---------- ONIKO MAIN ---------- */
 /* -------------------------------- */
 
-import { updateVignette, createHpBarPlayer, createHpBarNiko } from './health';
-import { fightFrame, moveNikoRandom } from "./fight";
+import {initBattleUI, player, vignette} from './battleUI';
+import {fightFrame, moveNikoRandom} from "./fight";
+import {initHazards} from "./projectiles";
+import {Mouse} from "./mouse";
+import {Oniko} from "./oniko";
 
 const nikoElement = document.createElement("div");
-
-export let direction: string
-export let nikoPosX: number;
-export let nikoPosY: number;
-export let mousePosX: number;
-export let mousePosY: number;
-
-export let width: number;
-export let height: number;
-
-export let isBlocked = false;
-export let isSleeping: boolean;
 
 window.setNikoPosX = setNikoPosX
 window.setNikoPosY = setNikoPosY
@@ -25,19 +16,13 @@ window.setNikoIsSleeping = setNikoIsSleeping
 window.setNikoIsBlocked = setNikoIsBlocked
 let isFight = window.isFight;
 
-let nikoSpeed: number;
-let sleepFrameSpeed: number;
-let idleTime: number;
-
-let frameCount = 0;
-let sleepFrameCount = 0;
-let lastFrameTimestamp: number;
-let sleepTimer: NodeJS.Timeout | null = null;
-
-let character: string;
+let sprite: string;
 
 let spriteWalk: any, spriteSleep: any, spriteSet: any;
 let nikoWalk: string, nikoSleep: string;
+
+export let mouse: Mouse;
+export let oniko: Oniko;
 
 // Clean up Niko before the window unloads.
 window.addEventListener("beforeunload", function () {
@@ -47,33 +32,35 @@ window.addEventListener("beforeunload", function () {
     }
 });
 
-browser.storage.local.get(["nikoPosX", "nikoPosY", "mousePosX", "mousePosY", "isSleeping", "sleepFrameSpeed", "nikoSpeed", "idleTime", "sprite"]).then((result) => {
-    nikoPosX = result.nikoPosX || 32;
-    nikoPosY = result.nikoPosY || 32;
-    mousePosX = result.mousePosX || 0;
-    mousePosY = result.mousePosY || 0;
-    isSleeping = result.isSleeping || false;
-    sleepFrameSpeed = result.sleepFrameSpeed || 0.1;
-    nikoSpeed = result.nikoSpeed || 10;
-    idleTime = result.idleTime || 60000;
-    character = result.sprite || "Niko";
+browser.storage.local.get(["nikoPosX", "nikoPosY", "mousePosX", "mousePosY", "isSleeping", "sleepFrameSpeed", "nikoSpeed", "idleTime", "sprite", "movement"]).then((result) => {
+    oniko.x = result.nikoPosX || 32;
+    oniko.y = result.nikoPosY || 32;
+    mouse.x = result.mousePosX || 0;
+    mouse.y = result.mousePosY || 0;
+    oniko.isSleeping = result.isSleeping || false;
+    oniko.sleepFrameSpeed = result.sleepFrameSpeed || 0.1;
+    oniko.speed = result.nikoSpeed || 10;
+    oniko.idleTime = result.idleTime || 60000;
+    sprite = result.sprite || "Niko";
+    oniko.movementType = result.movement || "new";
 
     //Enable easter egg
-    if (idleTime === 143000) {
-        nikoSpeed = 10
-        character = "TWM"
+    if (oniko.idleTime === 143000) {
+        initBattleUI()
+        initHazards()
+
         isFight = true;
         window.setFight(true)
-        updateVignette(0);
-        createHpBarPlayer();
-        createHpBarNiko();
+
+        vignette.updateVignette(player);
+
         function stopWheelEvent(event: { preventDefault: () => void; }) {
             event.preventDefault();
         }
         window.addEventListener('wheel', stopWheelEvent, { passive: false });
     }
 
-    fetch(browser.runtime.getURL("img/" + character + "/meta.json"))
+    fetch(browser.runtime.getURL("img/" + sprite + "/meta.json"))
         .then(response => {
             return response.json();
         })
@@ -93,23 +80,23 @@ browser.storage.local.get(["nikoPosX", "nikoPosY", "mousePosX", "mousePosY", "is
 export function setSprite(name: string, frame: number, state: string) {
     if (state === "walk" && spriteWalk) {
         spriteSet = spriteWalk;
-        width = spriteWalk.width || 48;
-        height = spriteWalk.height || 64;
+        oniko.width = spriteWalk.width || 48;
+        oniko.height = spriteWalk.height || 64;
         nikoElement.style.backgroundImage = `url(${nikoWalk})`;
     }
 
     if (state === "sleep" && spriteSleep) {
         spriteSet = spriteSleep;
-        width = spriteSleep.width;
-        height = spriteSleep.height;
+        oniko.width = spriteSleep.width;
+        oniko.height = spriteSleep.height;
         nikoElement.style.backgroundImage = `url(${nikoSleep})`;
     }
 
     if (name !== undefined && spriteSet) {
-        nikoElement.style.width = width + 'px';
-        nikoElement.style.height = height + 'px';
+        nikoElement.style.width = oniko.width + 'px';
+        nikoElement.style.height = oniko.height + 'px';
         const sprite = spriteSet[name][frame % spriteSet[name].length];
-        nikoElement.style.backgroundPosition = `${sprite[0] * width}px ${sprite[1] * height}px`;
+        nikoElement.style.backgroundPosition = `${sprite[0] * oniko.width}px ${sprite[1] * oniko.height}px`;
     }
 }
 
@@ -138,15 +125,18 @@ function init() {
 
     document.body.appendChild(nikoElement);
 
+    mouse = new Mouse();
+    oniko = new Oniko();
+
     browser.storage.local.get(['nikoPosX', 'nikoPosY', 'mousePosX', 'mousePosY', 'isSleeping']).then((result) => {
-        nikoPosX = result.nikoPosX || 32;
-        nikoPosY = result.nikoPosY || 32;
-        mousePosX = result.mousePosX || undefined;
-        mousePosY = result.mousePosY || undefined;
-        isSleeping = result.isSleeping || undefined;
+        oniko.x = result.nikoPosX || 32;
+        oniko.y = result.nikoPosY || 32;
+        mouse.x = result.mousePosX || undefined;
+        mouse.y = result.mousePosY || undefined;
+        oniko.isSleeping = result.isSleeping || undefined;
     });
 
-    resetSleepTimer(isBlocked);
+    resetSleepTimer(oniko.isBlocked);
 
     window.requestAnimationFrame(onAnimationFrame);
 
@@ -155,9 +145,9 @@ function init() {
     }
 
     document.addEventListener('mousemove', (event) => {
-        mousePosX = event.clientX;
-        mousePosY = event.clientY;
-        resetSleepTimer(isBlocked);
+        mouse.x = event.clientX;
+        mouse.y = event.clientY;
+        resetSleepTimer(oniko.isBlocked);
     });
 }
 
@@ -168,76 +158,58 @@ init();
 /* ------------------------------- */
 
 function setNikoPosX(value: number) {
-    nikoPosX = value
+    oniko.x = value
 }
 
 function setNikoPosY(value: number) {
-    nikoPosY = value
+    oniko.y = value
 }
 
 function setNikoIsSleeping(value: boolean) {
-    isSleeping = value
+    oniko.isSleeping = value
 }
 
 function setNikoIsBlocked(value: boolean) {
-    isBlocked = value
+    oniko.isBlocked = value
 }
 
 function frame() {
-    const diffX = nikoPosX - (mousePosX || nikoPosX);
-    const diffY = nikoPosY - (mousePosY || nikoPosY);
-    const distance = Math.hypot(diffX, diffY);
+    let diffArr = mouse.calculateDiff()
+    let distance = mouse.calculateDistance(diffArr)
+    let normalizedArr = mouse.calculateVector(distance, diffArr);
+    let direction = mouse.getDirection(normalizedArr)
 
     // Start sleep timer if Niko is near the mouse and not already sleeping.
-    if (distance < 128 && !sleepTimer && !isSleeping) {
-        sleepTimer = setTimeout(() => {
-            isSleeping = true;
-            sleepFrameCount = 0;
-        }, idleTime);
+    if (distance < 128 && !oniko.sleepTimer && !oniko.isSleeping) {
+        oniko.sleepTimer = setTimeout(() => {
+            oniko.isSleeping = true;
+            oniko.sleepFrameCount = 0;
+        }, oniko.idleTime);
     }
 
-    const normalizedX = diffX / distance;
-    const normalizedY = diffY / distance;
-
-    if (normalizedY > 0.5) {
-        direction = "N";
-    } else if (normalizedY < -0.5) {
-        direction = "S";
-    } else if (normalizedX > 0.5) {
-        direction = "W";
-    } else if (normalizedX < -0.5) {
-        direction = "E";
-    }
-
-    if (isSleeping) {
-        setSprite(direction, Math.floor(sleepFrameCount), "sleep");
-        sleepFrameCount += sleepFrameSpeed;
+    if (oniko.isSleeping) {
+        setSprite(direction, Math.floor(oniko.sleepFrameCount), "sleep");
+        oniko.sleepFrameCount += oniko.sleepFrameSpeed;
         return;
     }
 
-    // Stop animation if Niko is close to the mouse.
-    if (distance < width || distance < height) { // Используем размеры спрайта
-        setSprite(direction || "idle", 0, "walk");
-        return;
+    if (oniko.movementType == "new") {
+        nikoMovement(distance, normalizedArr, diffArr);
+    } else if (oniko.movementType == "legacy") {
+        legacyNikoMovement(distance, normalizedArr, diffArr);
     }
-
-    setSprite(direction, frameCount, "walk");
-
-    nikoPosX -= (diffX / distance) * nikoSpeed;
-    nikoPosY -= (diffY / distance) * nikoSpeed;
-
-    updateNikoPosition();
 }
 
 // Primary animation loop.
 function onAnimationFrame(timestamp: number) {
     if (!nikoElement.isConnected) return;
     if (document.hidden) return;
-    frameCount += 1
 
-    if (!lastFrameTimestamp) lastFrameTimestamp = timestamp;
-    if (timestamp - lastFrameTimestamp > 70) {
-        lastFrameTimestamp = timestamp;
+    oniko.frameCount += 1
+
+    if (!oniko.lastFrameTimestamp) oniko.lastFrameTimestamp = timestamp;
+    if (timestamp - oniko.lastFrameTimestamp > 75) {
+        oniko.lastFrameTimestamp = timestamp;
         if (isFight) {
             fightFrame()
         } else {
@@ -247,19 +219,66 @@ function onAnimationFrame(timestamp: number) {
     window.requestAnimationFrame(onAnimationFrame);
 }
 
+function nikoMovement(distance: number, normalizedArr: [number, number], diffArr: [number, number]) {
+    let diffX = diffArr[0];
+    let diffY = diffArr[1];
+
+    let direction = mouse.getDirection(normalizedArr);
+
+    // If niko is closer than 64 go further from mouse
+    if (distance < 96) {
+        oniko.x += (diffX / distance) * oniko.speed;
+        oniko.y += (diffY / distance) * oniko.speed;
+    }
+    // If niko is in position between 64 and 128 stand still
+    else if (distance > 64 && distance < 128) {
+        setSprite(direction || "idle", 0, "walk");
+        return;
+    }
+    // Else go to mouse
+    else {
+        oniko.x -= (diffX / distance) * oniko.speed;
+        oniko.y -= (diffY / distance) * oniko.speed;
+    }
+
+    setSprite(direction, oniko.frameCount, "walk");
+
+    updateNikoPosition();
+}
+
+function legacyNikoMovement(distance: number, normalizedArr: [number, number], diffArr: [number, number]) {
+    let diffX = diffArr[0];
+    let diffY = diffArr[1];
+
+    let direction = mouse.getDirection(normalizedArr);
+
+    // Stop animation if Niko is close to the mouse.
+    if (distance < oniko.width || distance < oniko.height) {
+        setSprite(direction || "idle", 0, "walk");
+        return;
+    }
+
+    oniko.x -= (diffX / distance) * oniko.speed;
+    oniko.y -= (diffY / distance) * oniko.speed;
+
+    setSprite(direction, oniko.frameCount, "walk");
+
+    updateNikoPosition();
+}
+
 function resetSleepTimer(isBlocked: boolean) {
     if (isBlocked) {
         return;
     }
 
-    if (sleepTimer !== null) {
-        clearTimeout(sleepTimer);
+    if (oniko.sleepTimer !== null) {
+        clearTimeout(oniko.sleepTimer);
     }
 
-    sleepTimer = null;
-    if (isSleeping) {
-        isSleeping = false;
-        sleepFrameCount = 0;
+    oniko.sleepTimer = null;
+    if (oniko.isSleeping) {
+        oniko.isSleeping = false;
+        oniko.sleepFrameCount = 0;
     }
 }
 
@@ -268,19 +287,26 @@ function resetSleepTimer(isBlocked: boolean) {
 /* -------------------------- */
 
 export function updateNikoPosition() {
-    nikoElement.style.left = `${nikoPosX - 24}px`;
-    nikoElement.style.top = `${nikoPosY - 32}px`;
+    nikoElement.style.left = `${oniko.x - 24}px`;
+    nikoElement.style.top = `${oniko.y - 32}px`;
+
+    let nikoPosX = oniko.x
+    let nikoPosY = oniko.y
+    let mousePosX = mouse.x;
+    let mousePosY = mouse.y;
+    let isSleeping = oniko.isSleeping;
+
     browser.runtime.sendMessage({
         action: "updateNikoPosition", nikoPosX, nikoPosY, mousePosX, mousePosY, isSleeping
     });
 }
 
 browser.runtime.onMessage.addListener(function (request) {
-    nikoPosX = request.nikoPosX;
-    nikoPosY = request.nikoPosY;
-    mousePosX = request.mousePosX;
-    mousePosY = request.mousePosY;
-    isSleeping = request.isSleeping;
+    oniko.x = request.nikoPosX;
+    oniko.y = request.nikoPosY;
+    mouse.x = request.mousePosX;
+    mouse.y = request.mousePosY;
+    oniko.isSleeping = request.isSleeping;
 });
 
 // Handle tab visibility changes.
@@ -288,13 +314,13 @@ window.addEventListener("visibilitychange", function () {
     if (!document.hidden) {
         // When the tab becomes active, load the last known position from storage.
         browser.storage.local.get(['nikoPosX', 'nikoPosY', 'mousePosX', 'mousePosY', 'isSleeping']).then((result) => {
-            nikoPosX = result.nikoPosX || nikoPosX;
-            nikoPosY = result.nikoPosY || nikoPosY;
-            mousePosX = result.mousePosX || mousePosX;
-            mousePosY = result.mousePosY || mousePosY;
-            isSleeping = result.isSleeping || isSleeping;
+            oniko.x = result.nikoPosX || oniko.x;
+            oniko.y = result.nikoPosY || oniko.y;
+            mouse.x = result.mousePosX || mouse.x;
+            mouse.y = result.mousePosY || mouse.y;
+            oniko.isSleeping = result.isSleeping || oniko.isSleeping;
             // Restart the animation loop.
-            resetSleepTimer(isBlocked);
+            resetSleepTimer(oniko.isBlocked);
             window.requestAnimationFrame(onAnimationFrame);
         });
     }
