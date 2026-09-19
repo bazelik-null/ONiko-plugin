@@ -1,3 +1,8 @@
+> [!WARNING]
+>
+> NO LONGER MAINTAINED. MIGRATED TO CODEBERG
+> https://codeberg.org/bazelik-dev/ONiko-plugin
+
 # oNiko Add-on
 
 The oNiko extension is designed for browsers based on Chromium and Firefox.
